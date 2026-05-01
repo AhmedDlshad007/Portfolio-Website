@@ -23,7 +23,7 @@
 ══════════════════════════════════════════════════════ */
 
 const canvas = document.getElementById('bg-canvas');
-if (!canvas) return; // script loaded before DOM — bootSpace will retry
+if (!canvas) throw new Error('space-engine: #bg-canvas not found');
 const ctx = canvas.getContext('2d');
 let W = 0, H = 0;
 let rafHandle = 0;
@@ -185,10 +185,10 @@ function pickSpectralIndex() {
 ══════════════════════════════════════════════ */
 let deepField = [];
 function initDeepField() {
-  const N = 1400;
+  const N = 4000;
   deepField = Array.from({ length: N }, () => ({
     x: Math.random(), y: Math.random(),
-    alpha: 0.04 + Math.random() * 0.14,
+    alpha: 0.06 + Math.random() * 0.2,
     r: 0.15 + Math.random() * 0.4,
     twinkle: Math.random() * Math.PI * 2,
     twinkleSpeed: 0.3 + Math.random() * 1.0,
@@ -209,9 +209,9 @@ function initStars(n) {
     const s = {
       x: Math.random(), y: Math.random(),
       baseX: 0, baseY: 0,
-      r: layer === 0 ? 0.3 + Math.random() * 1.0
-       : layer === 1 ? 0.5 + Math.random() * 1.6
-       : 0.8 + Math.random() * 2.4,
+      r: layer === 0 ? 0.3 + Math.random() * 0.7
+       : layer === 1 ? 0.4 + Math.random() * 1.0
+       : 0.5 + Math.random() * 1.4,
       baseAlpha: brightness,
       twinkleSpeed: 0.4 + Math.random() * 3.0,
       twinklePhase: Math.random() * Math.PI * 2,
@@ -563,7 +563,7 @@ function renderDustOffscreen(t) {
 function resize() {
   W = canvas.width = window.innerWidth;
   H = canvas.height = window.innerHeight;
-  initStars(cfg.starCount || 1500);
+  initStars(cfg.starCount || 3000);
   initDeepField();
   createOffscreenCanvases();
   offscreenFrameCount = 0;
@@ -898,14 +898,14 @@ function drawFrame(timestamp) {
 
   /* ═══ LAYER 18: Vignette ═══ */
   {
-    const g=ctx.createRadialGradient(W*0.5,H*0.44,Math.min(W,H)*0.12,W*0.5,H*0.44,Math.max(W,H)*0.88);
+    const g=ctx.createRadialGradient(W*0.5,H*0.44,Math.min(W,H)*0.2,W*0.5,H*0.44,Math.max(W,H)*0.95);
     g.addColorStop(0,   'rgba(0,0,0,0)');
-    g.addColorStop(0.4, 'rgba(0,0,0,0.1)');
-    g.addColorStop(0.7, 'rgba(0,0,0,0.45)');
-    g.addColorStop(1,   'rgba(0,0,0,0.92)');
+    g.addColorStop(0.5, 'rgba(0,0,0,0.05)');
+    g.addColorStop(0.8, 'rgba(0,0,0,0.2)');
+    g.addColorStop(1,   'rgba(0,0,0,0.55)');
     ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-    const tg=ctx.createLinearGradient(0,0,0,90);
-    tg.addColorStop(0,'rgba(0,0,0,0.4)'); tg.addColorStop(1,'rgba(0,0,0,0)');
+    const tg=ctx.createLinearGradient(0,0,0,60);
+    tg.addColorStop(0,'rgba(0,0,0,0.25)'); tg.addColorStop(1,'rgba(0,0,0,0)');
     ctx.fillStyle=tg; ctx.fillRect(0,0,W,90);
   }
 
@@ -937,29 +937,29 @@ function drawStars(layerArray, alphaMult) {
     if (z < 0.01) z += 0.01;
     s.z = z;
 
-    const perspective = 1 / z;
+    const perspective = Math.min(1 / z, 5);
 
     // Atmospheric scintillation — stars near bottom twinkle more
     const scintAmp = 0.15 + 0.35 * (s.scintillation / 2.0);
     const twinkle = (1 - scintAmp) + scintAmp * Math.sin(t * s.twinkleSpeed * Math.PI * 2 + s.twinklePhase);
-    const alphaDepth = Math.min(1, perspective * 0.3);
-    let a = s.baseAlpha * twinkle * alphaMult * alphaDepth;
-    if (a < 0.03) continue;
+    let a = s.baseAlpha * twinkle * alphaMult;
+    if (a < 0.015) continue;
 
-    // Perspective projection
+    // Position: simple parallax (no perspective warp on position — just mouse reactivity + scroll)
     const mouseOffX = (mouse.x - 0.5) * s.parallax * str;
     const mouseOffY = (mouse.y - 0.5) * s.parallax * str;
-    const px = (0.5 + (s.baseX - 0.5 + mouseOffX) * perspective) * W;
-    const py = (0.5 + (s.baseY - 0.5 + mouseOffY) * perspective) * H;
+    const px = (s.baseX + mouseOffX) * W;
+    const py = (s.baseY + mouseOffY) * H;
 
     // Cull offscreen
     if (px < -20 || px > W + 20 || py < -20 || py > H + 20) continue;
 
-    const r = s.r * perspective * 0.5;
+    // Size scales with perspective — close stars bigger, far stars smaller
+    const r = s.r * (0.4 + perspective * 0.15);
 
-    /* Glow halo for brighter stars */
-    if (s.baseAlpha > 0.55 && s.r > 0.9) {
-      const glowR = r * (s.layer === 2 ? 5.5 : 4.0);
+    /* Glow halo for brighter stars — subtle, not bloom */
+    if (s.baseAlpha > 0.6 && r > 1.0) {
+      const glowR = r * 2.5;
       const g = ctx.createRadialGradient(px,py,0,px,py,glowR);
       g.addColorStop(0, colorAtAlpha(s.specIdx, a*0.35));
       g.addColorStop(1, colorAtAlpha(s.specIdx, 0));
@@ -977,7 +977,7 @@ function drawStars(layerArray, alphaMult) {
       ctx.strokeStyle = colorAtAlpha(s.specIdx, spikeA);
       ctx.lineWidth = 0.4;
       const rot = t * 0.15 + s.twinklePhase;
-      const sl = r * (s.layer === 2 ? 10 : 7);
+      const sl = r * (s.layer === 2 ? 5 : 4);
 
       ctx.beginPath();
       ctx.moveTo(px - Math.cos(rot)*sl, py - Math.sin(rot)*sl);
