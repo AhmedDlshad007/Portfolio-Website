@@ -1,0 +1,17 @@
+[build]
+  command = "npm run build && npm run export"
+  publish = "out"
+
+[build.environment]
+  NEXT_FORCE_EDGE_IMAGES = "true"
+
+[functions]
+  included_files = [".env.local"]
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200 
