@@ -1045,7 +1045,12 @@ window.bootSpace = function(defaults) {
   initWisps();
   lastFrameTime = 0;
   cancelAnimationFrame(rafHandle);
-  requestAnimationFrame(drawFrame);
+  rafHandle = requestAnimationFrame(drawFrame);
+};
+
+window.stopSpace = function() {
+  cancelAnimationFrame(rafHandle);
+  rafHandle = 0;
 };
 
 window.updateSpaceCfg = function(newCfg) {

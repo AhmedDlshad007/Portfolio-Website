@@ -8,6 +8,7 @@ declare global {
   interface Window {
     bootSpace: (cfg: Record<string, unknown>) => void;
     updateSpaceCfg: (cfg: Record<string, unknown>) => void;
+    stopSpace: () => void;
   }
 }
 
@@ -332,6 +333,7 @@ Developed a web application that automatically generates captions and tags for u
     };
     document.body.appendChild(script);
     return () => {
+      if (window.stopSpace) window.stopSpace();
       if (script.parentNode) script.parentNode.removeChild(script);
     };
   }, []);
@@ -347,7 +349,7 @@ Developed a web application that automatically generates captions and tags for u
     const socialEl = heroSocialRef.current;
     if (!nameEl || !subtitleEl || !descEl || !ctaEl || !socialEl) return;
 
-    /* ── inject keyframes ── */
+    /* ── inject keyframes (shared across fast and slow paths) ── */
     const kfStyle = document.createElement("style");
     kfStyle.textContent = `
       @keyframes fadeInUp { from { opacity:0; transform:translateY(28px); } to { opacity:1; transform:none; } }
@@ -356,8 +358,48 @@ Developed a web application that automatically generates captions and tags for u
     `;
     document.head.appendChild(kfStyle);
 
-    /* ── 1. Letter assembly for name ── */
     const nameText = "Ahmed Dlshad";
+    const subtitleText = "Junior Developer & Full Stack Engineer";
+    const descText = descEl.textContent?.trim().replace(/\s+/g, " ") || "";
+
+    /* ── Fast path: user already saw the animation this session ── */
+    const alreadyPlayed = typeof window !== "undefined" && sessionStorage.getItem("hero-animated") === "1";
+
+    if (alreadyPlayed) {
+      nameEl.innerHTML = "";
+      [...nameText].forEach((ch) => {
+        const span = document.createElement("span");
+        span.className = "hero-letter";
+        span.textContent = ch === " " ? " " : ch;
+        span.style.setProperty("--lx", "0px");
+        span.style.setProperty("--ly", "0px");
+        span.style.setProperty("--lr", "0deg");
+        span.style.background =
+          "linear-gradient(100deg, #9333ea 0%, #d946ef 30%, #e879f9 50%, #d946ef 70%, #9333ea 100%)";
+        span.style.backgroundSize = "200% auto";
+        (span.style as unknown as Record<string, string>).webkitBackgroundClip = "text";
+        (span.style as unknown as Record<string, string>).webkitTextFillColor = "transparent";
+        span.style.backgroundClip = "text";
+        span.style.animation = "letter-assemble-done 0s forwards, name-shimmer 4s linear infinite";
+        nameEl.appendChild(span);
+      });
+
+      subtitleEl.textContent = subtitleText;
+      subtitleEl.style.opacity = "1";
+      subtitleEl.classList.add("typing-done");
+
+      descEl.style.opacity = "1";
+      // description keeps its original textContent — no word-split needed
+
+      ctaEl.style.opacity = "1";
+      socialEl.style.opacity = "1";
+
+      return () => {
+        if (kfStyle.parentNode) kfStyle.parentNode.removeChild(kfStyle);
+      };
+    }
+
+    /* ── 1. Letter assembly for name ── */
     nameEl.innerHTML = "";
 
     [...nameText].forEach((ch, i) => {
@@ -392,7 +434,6 @@ Developed a web application that automatically generates captions and tags for u
     }, shimmerDelay * 1000);
 
     /* ── 2. Typewriter subtitle ── */
-    const subtitleText = "Junior Developer & Full Stack Engineer";
     const typeDelay = shimmerDelay * 1000 + 200;
 
     const typeTimeout = setTimeout(() => {
@@ -409,7 +450,6 @@ Developed a web application that automatically generates captions and tags for u
     }, typeDelay);
 
     /* ── 3. Word blur reveal for description ── */
-    const descText = descEl.textContent?.trim().replace(/\s+/g, " ") || "";
     const words = descText.split(" ");
     descEl.innerHTML = "";
     words.forEach((w, i) => {
@@ -449,6 +489,7 @@ Developed a web application that automatically generates captions and tags for u
         socialEl.style.opacity = "1";
         socialEl.style.transform = "translateY(0)";
       });
+      try { sessionStorage.setItem("hero-animated", "1"); } catch {}
     }, ctaDelay + 200);
 
     return () => {
