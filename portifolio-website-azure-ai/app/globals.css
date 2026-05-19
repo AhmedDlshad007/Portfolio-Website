@@ -46,35 +46,7 @@ body {
   background: var(--black);
   color: var(--gray-200);
   overflow-x: hidden;
-  cursor: none;
 }
-
-/* ── Custom Cursor ── */
-#cursor-dot {
-  position: fixed;
-  width: 8px;
-  height: 8px;
-  background: var(--purple-400);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 99999;
-  transform: translate(-50%, -50%);
-  transition: transform 0.08s ease, opacity 0.3s ease, background 0.3s ease;
-  mix-blend-mode: normal;
-}
-#cursor-ring {
-  position: fixed;
-  width: 36px;
-  height: 36px;
-  border: 2px solid rgba(147, 51, 234, 0.6);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 99998;
-  transform: translate(-50%, -50%);
-  transition: transform 0.18s cubic-bezier(0.23,1,0.32,1), width 0.25s ease, height 0.25s ease, border-color 0.25s ease, opacity 0.3s ease;
-}
-body:has(a:hover) #cursor-dot, body:has(button:hover) #cursor-dot { background: var(--fuchsia-500); transform: translate(-50%, -50%) scale(1.6); }
-body:has(a:hover) #cursor-ring, body:has(button:hover) #cursor-ring { width: 52px; height: 52px; border-color: rgba(217, 70, 239, 0.7); }
 
 /* ── Unified Background (canvas-driven, no blobs needed) ── */
 /* All section backgrounds are transparent so the canvas shows through */
@@ -129,14 +101,14 @@ nav li a.button {
   border-radius: 10px; box-shadow: 0 4px 15px rgba(147,51,234,0.3);
 }
 nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(147,51,234,0.5); }
-.mobile-toggle { display: none; background: none; border: none; color: var(--white); cursor: none; padding: 8px; border-radius: 8px; }
+.mobile-toggle { display: none; background: none; border: none; color: var(--white); cursor: pointer; padding: 8px; border-radius: 8px; }
 .mobile-toggle:hover { background: rgba(147,51,234,0.1); }
 
 /* ── Buttons ── */
 .button {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 14px 32px; border-radius: 12px;
-  font-weight: 600; cursor: none; border: none; font-size: 16px;
+  font-weight: 600; cursor: pointer; border: none; font-size: 16px;
   transition: box-shadow 0.25s ease, transform 0.1s ease;
   position: relative; overflow: hidden; will-change: transform;
 }
@@ -342,9 +314,9 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
 }
 .glow-effect {
   position: absolute; inset: -80px;
-  background: radial-gradient(circle at 50% 50%, rgba(217,70,239,0.18) 0%, rgba(147,51,234,0.08) 40%, transparent 70%);
-  border-radius: 50%; filter: blur(40px); z-index: 0;
-  animation: bloom-pulse 4s ease-in-out infinite;
+  background: radial-gradient(circle at 50% 50%, rgba(217,70,239,0.32) 0%, rgba(147,51,234,0.18) 32%, rgba(168,85,247,0.07) 58%, transparent 75%);
+  border-radius: 50%; filter: blur(34px); z-index: 0;
+  animation: bloom-pulse 8s ease-in-out infinite;
 }
 .image-wrapper img {
   position: relative; z-index: 1; width: 100%; height: 100%;
@@ -357,8 +329,9 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
   50%{transform:translateY(-14px)}
 }
 @keyframes bloom-pulse {
-  0%,100%{opacity:0.6;transform:scale(1)}
-  50%{opacity:1;transform:scale(1.05)}
+  0%   { opacity:0.42; transform:scale(0.88); }
+  50%  { opacity:1.0;  transform:scale(1.22); }
+  100% { opacity:0.42; transform:scale(0.88); }
 }
 @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-16px)} }
 @keyframes pulse-glow { 0%,100%{opacity:0.5} 50%{opacity:1} }
@@ -658,7 +631,7 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
 .chat-input-form input::placeholder { color: var(--gray-500); }
 .send-button {
   width: 42px; height: 42px; background: var(--gradient-purple); border: none;
-  border-radius: 11px; color: var(--white); cursor: none;
+  border-radius: 11px; color: var(--white); cursor: pointer;
   display: flex; align-items: center; justify-content: center; transition: var(--transition-normal);
 }
 .send-button:hover { transform: scale(1.06); box-shadow: 0 4px 20px rgba(147,51,234,0.5); }
@@ -669,7 +642,7 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
   width: 60px; height: 60px; border-radius: 50%;
   background: var(--gradient-purple);
   box-shadow: 0 6px 30px rgba(147,51,234,0.6), 0 0 0 0 rgba(147,51,234,0.4);
-  border: none; cursor: none; color: var(--white);
+  border: none; cursor: pointer; color: var(--white);
   display: flex; align-items: center; justify-content: center;
   animation: float-btn-pulse 2.5s ease-in-out infinite;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
@@ -706,7 +679,7 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
 .float-chat-header-left { display: flex; align-items: center; gap: 10px; }
 .float-chat-header h4 { color: var(--white); font-size: 15px; margin: 0; }
 .float-chat-close {
-  width: 28px; height: 28px; border-radius: 50%; border: none; cursor: none;
+  width: 28px; height: 28px; border-radius: 50%; border: none; cursor: pointer;
   background: rgba(255,255,255,0.2); color: var(--white);
   display: flex; align-items: center; justify-content: center;
   transition: background 0.2s; font-size: 14px;
@@ -734,7 +707,7 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
 .float-chat-input input::placeholder { color: var(--gray-500); }
 .float-send {
   width: 38px; height: 38px; background: var(--gradient-purple);
-  border: none; border-radius: 10px; color: var(--white); cursor: none;
+  border: none; border-radius: 10px; color: var(--white); cursor: pointer;
   display: flex; align-items: center; justify-content: center; transition: var(--transition-fast);
   flex-shrink: 0;
 }
@@ -764,6 +737,71 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
   color: var(--gray-500); font-size: 14px;
 }
 
+/* ── Experience — blue / indigo accent zone ── */
+.experience-section::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 90% 70% at 50% 45%, rgba(29,78,216,0.055) 0%, transparent 68%);
+  pointer-events: none; z-index: -1;
+}
+.experience-section .timeline::before {
+  background: linear-gradient(180deg, transparent 0%, rgba(59,130,246,0.55) 18%, rgba(96,165,250,0.65) 50%, rgba(59,130,246,0.35) 82%, transparent 100%);
+  box-shadow: 0 0 10px rgba(59,130,246,0.25);
+}
+.experience-section .timeline-dot {
+  background: linear-gradient(135deg, #1d4ed8 0%, #60a5fa 100%);
+  box-shadow: 0 0 20px rgba(59,130,246,0.65);
+}
+.experience-section .timeline-content {
+  background: rgba(4,10,36,0.44);
+  border-color: rgba(59,130,246,0.13);
+}
+.experience-section .timeline-content:hover {
+  background: rgba(8,18,56,0.58);
+  border-color: rgba(96,165,250,0.30);
+  box-shadow: 0 10px 40px rgba(59,130,246,0.13);
+}
+.experience-section .timeline-header h3 { color: #60a5fa; }
+.experience-section .timeline-date {
+  background: rgba(59,130,246,0.18);
+  color: #93c5fd;
+}
+.experience-section .timeline-list li::before { color: #60a5fa; }
+.experience-section .section-title {
+  background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 50%, #93c5fd 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+/* ── Projects — teal / emerald accent zone ── */
+.projects-section::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 90% 70% at 50% 45%, rgba(6,78,59,0.055) 0%, transparent 68%);
+  pointer-events: none; z-index: -1;
+}
+.projects-section .project-card {
+  background: rgba(3,16,14,0.44);
+  border-color: rgba(20,184,166,0.10);
+}
+.projects-section .project-card:hover {
+  background: rgba(5,26,22,0.58);
+  border-color: rgba(20,184,166,0.30);
+  box-shadow: 0 20px 60px rgba(20,184,166,0.13), 0 0 0 1px rgba(20,184,166,0.06);
+}
+.projects-section .project-tags span {
+  background: rgba(20,184,166,0.15);
+  color: #5eead4;
+}
+.projects-section .project-github { color: #2dd4bf; }
+.projects-section .project-github:hover { color: #5eead4; }
+.projects-section .project-link {
+  background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
+}
+.projects-section .section-title {
+  background: linear-gradient(135deg, #0d9488 0%, #14b8a6 45%, #5eead4 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
 /* ── Responsive ── */
 @media (max-width: 1024px) {
   :root { --section-padding: 80px; }
@@ -788,6 +826,4 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
   .stats-grid { grid-template-columns: 1fr; }
   #float-chat-panel { width: calc(100vw - 32px); right: 16px; bottom: 100px; }
   #float-chat-btn { bottom: 24px; right: 16px; }
-  body { cursor: auto; }
-  #cursor-dot, #cursor-ring { display: none; }
 }

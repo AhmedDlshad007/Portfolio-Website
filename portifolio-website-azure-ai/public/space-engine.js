@@ -122,12 +122,12 @@ const PALETTES = {
    STAR SPECTRAL TYPES — realistic color temp
 ══════════════════════════════════════════════ */
 const SPECTRAL = [
-  { r:155, g:175, b:255, weight: 0.06, minAlpha: 0.7 },
-  { r:185, g:200, b:255, weight: 0.12, minAlpha: 0.5 },
-  { r:240, g:240, b:255, weight: 0.20, minAlpha: 0.3 },
-  { r:255, g:245, b:230, weight: 0.25, minAlpha: 0.2 },
-  { r:255, g:225, b:185, weight: 0.22, minAlpha: 0.15 },
-  { r:255, g:190, b:150, weight: 0.15, minAlpha: 0.1 },
+  { r:140, g:165, b:255, weight: 0.07, minAlpha: 0.82, sizeBonus: 0.55 }, // O/B blue supergiants — rare, brilliant
+  { r:188, g:208, b:255, weight: 0.13, minAlpha: 0.60, sizeBonus: 0.22 }, // A blue-white
+  { r:240, g:242, b:255, weight: 0.20, minAlpha: 0.28, sizeBonus: 0.00 }, // F neutral white
+  { r:255, g:248, b:218, weight: 0.24, minAlpha: 0.18, sizeBonus: 0.00 }, // G warm white (sun-like)
+  { r:255, g:210, b:142, weight: 0.21, minAlpha: 0.28, sizeBonus: 0.20 }, // K yellow-orange subgiants
+  { r:255, g:158, b:82,  weight: 0.15, minAlpha: 0.50, sizeBonus: 0.45 }, // M red-orange giants — warm amber
 ];
 
 /* ══════════════════════════════════════════════
@@ -209,9 +209,9 @@ function initStars(n) {
     const s = {
       x: Math.random(), y: Math.random(),
       baseX: 0, baseY: 0,
-      r: layer === 0 ? 0.3 + Math.random() * 0.7
+      r: (layer === 0 ? 0.3 + Math.random() * 0.7
        : layer === 1 ? 0.4 + Math.random() * 1.0
-       : 0.5 + Math.random() * 1.4,
+       : 0.5 + Math.random() * 1.4) + (spec.sizeBonus || 0),
       baseAlpha: brightness,
       twinkleSpeed: 0.4 + Math.random() * 3.0,
       twinklePhase: Math.random() * Math.PI * 2,
@@ -957,12 +957,15 @@ function drawStars(layerArray, alphaMult) {
     // Size scales with perspective — close stars bigger, far stars smaller
     const r = s.r * (0.4 + perspective * 0.15);
 
-    /* Glow halo for brighter stars — subtle, not bloom */
-    if (s.baseAlpha > 0.6 && r > 1.0) {
-      const glowR = r * 2.5;
+    /* Glow halo for brighter stars — colored stars get bigger, brighter halos */
+    if (s.baseAlpha > 0.52 && r > 0.8) {
+      const isColored = s.specIdx === 0 || s.specIdx === 1 || s.specIdx === 4 || s.specIdx === 5;
+      const glowR = r * (isColored ? 3.8 : 2.5);
+      const glowA = a * (isColored ? 0.55 : 0.35);
       const g = ctx.createRadialGradient(px,py,0,px,py,glowR);
-      g.addColorStop(0, colorAtAlpha(s.specIdx, a*0.35));
-      g.addColorStop(1, colorAtAlpha(s.specIdx, 0));
+      g.addColorStop(0,   colorAtAlpha(s.specIdx, glowA));
+      g.addColorStop(0.4, colorAtAlpha(s.specIdx, glowA * 0.3));
+      g.addColorStop(1,   colorAtAlpha(s.specIdx, 0));
       ctx.fillStyle=g; ctx.beginPath(); ctx.arc(px,py,glowR,0,Math.PI*2); ctx.fill();
     }
 
@@ -1021,11 +1024,6 @@ window.addEventListener('mousemove', e => {
   targetMouse.y = e.clientY / H;
 });
 window.addEventListener('scroll', () => { scroll = window.scrollY; cachedScrollHeight = document.body.scrollHeight; }, { passive: true });
-window.addEventListener('click', e => {
-  const tag = e.target.tagName;
-  if (['A','BUTTON','INPUT','TEXTAREA','SELECT'].includes(tag)) return;
-  spawnBurst(e.clientX, e.clientY);
-});
 window.addEventListener('resize', resize);
 
 /* ══════════════════════════════════════════════

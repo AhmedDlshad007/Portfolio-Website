@@ -56,8 +56,6 @@ export default function Home() {
   const [badgeVisible, setBadgeVisible] = useState(true);
 
   /* ── refs ── */
-  const cursorDotRef = useRef<HTMLDivElement>(null);
-  const cursorRingRef = useRef<HTMLDivElement>(null);
   const heroNameInnerRef = useRef<HTMLSpanElement>(null);
   const heroSubtitleRef = useRef<HTMLHeadingElement>(null);
   const heroDescRef = useRef<HTMLParagraphElement>(null);
@@ -339,58 +337,7 @@ Developed a web application that automatically generates captions and tags for u
   }, []);
 
   /* ══════════════════════════════════════════
-     2) CUSTOM CURSOR
-  ══════════════════════════════════════════ */
-  useEffect(() => {
-    const dot = cursorDotRef.current;
-    const ring = cursorRingRef.current;
-    if (!dot || !ring) return;
-
-    let mx = -100,
-      my = -100,
-      rx = -100,
-      ry = -100;
-    let rafId: number;
-
-    const onMove = (e: MouseEvent) => {
-      mx = e.clientX;
-      my = e.clientY;
-      dot.style.left = mx + "px";
-      dot.style.top = my + "px";
-    };
-
-    const animateRing = () => {
-      rx += (mx - rx) * 0.14;
-      ry += (my - ry) * 0.14;
-      ring.style.left = rx + "px";
-      ring.style.top = ry + "px";
-      rafId = requestAnimationFrame(animateRing);
-    };
-
-    const onLeave = () => {
-      dot.style.opacity = "0";
-      ring.style.opacity = "0";
-    };
-    const onEnter = () => {
-      dot.style.opacity = "1";
-      ring.style.opacity = "1";
-    };
-
-    document.addEventListener("mousemove", onMove);
-    document.addEventListener("mouseleave", onLeave);
-    document.addEventListener("mouseenter", onEnter);
-    rafId = requestAnimationFrame(animateRing);
-
-    return () => {
-      document.removeEventListener("mousemove", onMove);
-      document.removeEventListener("mouseleave", onLeave);
-      document.removeEventListener("mouseenter", onEnter);
-      cancelAnimationFrame(rafId);
-    };
-  }, []);
-
-  /* ══════════════════════════════════════════
-     3) HERO ANIMATION SEQUENCE
+     2) HERO ANIMATION SEQUENCE
   ══════════════════════════════════════════ */
   useEffect(() => {
     const nameEl = heroNameInnerRef.current;
@@ -654,10 +601,6 @@ Developed a web application that automatically generates captions and tags for u
   ════════════════════════════════════════════ */
   return (
     <>
-      {/* Custom cursor */}
-      <div id="cursor-dot" ref={cursorDotRef} />
-      <div id="cursor-ring" ref={cursorRingRef} />
-
       {/* Background canvas (space engine renders here) */}
       <canvas
         id="bg-canvas"
