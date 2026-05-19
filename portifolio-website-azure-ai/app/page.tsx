@@ -68,82 +68,89 @@ export default function Home() {
   /* ── resume content for AI ── */
   const resumeContent = `
 Ahmed Dlshad Mohammed
-ahmed.dlshad.m@gmail.com | +964 7729625434 | Iraq, Sulaymaniyah
-LinkedIn: https://www.linkedin.com/in/ahmed-dlshad-007/
-Portfolio: https://ahmed-dlshad-site.netlify.app
+Full-Stack & Agentic AI Engineer
+ahmed.dlshad.m@gmail.com | +964 772 962 5434 | Sulaymaniyah, Iraq
+GitHub: github.com/AhmedDlshad007 | Portfolio: ahmed-dlshad-portfolio.vercel.app
+LinkedIn: linkedin.com/in/ahmed-dlshad1
 
-Summary
-Dynamic and highly motivated Software Engineer with a Bachelor's degree in Software
-Engineering from University Technology Malaysia. Proficient in C++, Java, Python, HTML5/CSS, and JavaScript. Fluent in Kurdish, Arabic, and English. Eager to leverage academic background and practical experience to contribute effectively to innovative software development projects.
+Personal Details
+Nationality: Iraqi · Ethnicity: Kurdish · Date of Birth: 30/03/2002 · Place of Birth: Kalar
 
 Education
-Bachelor's Degree in Software Engineering
-University Technology Malaysia (UTM), March 2025
+B.Sc. Software Engineering (Honours), graduated March 2025
+Universiti Teknologi Malaysia (UTM) via Qaiwan International University, Sulaymaniyah
+GPA: 2.69 / 4.0 (German scale: approx. 2.7 — befriedigend)
+Specialisation: Software Engineering, Full-Stack Development, AI/ML
+Degree internationally recognised (anabin database: UTM, Malaysia)
 
-Key Skills
-•	Proficient in C++, Java, Python, HTML5/CSS, JavaScript
-•	Mobile Applications (Flutter, Dart)
-•	Web Development (React, Next.js, Full-Stack)
-•	AI/ML Development
-•	Cloud Services (AWS, Azure)
-
-Certifications
-AWS Academy Graduate - AWS Academy Cloud Foundations, June 2023
+Technical Skills
+Programming: Python, JavaScript / TypeScript, C++, Java, HTML5/CSS3
+Frameworks: React, Next.js, Node.js, Flask, Tailwind CSS
+AI / Agents: Agentic AI, MCP (Model Context Protocol), OpenRouter, OpenAI API, Hugging Face, RAG, Stable Diffusion
+Cloud & Tools: AWS (Cloud Foundations), Docker, Vercel, Railway, Git/GitHub
 
 Languages
-•	Kurdish: Native
-•	Arabic: Fluent
-•	English: Fluent
+Kurdish — Native | Arabic — Fluent | English — Proficient (B2–C1)
+
+Certifications
+AWS Academy Graduate — Cloud Foundations, Amazon Web Services, June 2023
 
 Work Experience
+
+Full-Stack & Agentic AI Engineer (Full-Time)
+BlackCode · Switzerland (Remote)
+February 2026 – Present
+• Lead full-stack development of company products using React/Next.js (frontend) and Node.js/Python (backend), with focus on performance and scalability.
+• Engineer Companion — an Agentic AI desktop controller built on the Model Context Protocol (MCP), enabling AI agents to control the browser, access the local file system, interact with Gmail, and execute cross-application workflows.
+• Integrated OpenRouter to support any large language model within Companion, giving users flexible multi-model AI access from a single interface.
+• Design and maintain MCP server integrations and autonomous agent pipelines for real-world task automation.
+
 Junior Developer (Contract)
-BlackCode - Remote
+BlackCode · Switzerland (Remote)
 March 2025 – May 2025
-•	Assisted in building and testing AI/ML models and API implementations, contributing to cutting-edge projects in a remote team environment.
-•	Collaborated on gaming experiment prototypes, brainstorming and implementing innovative ideas with senior developers.
-•	Developed Python proficiency while applying new technologies and best practices in AI and ML.
-•	Delivered results in a fast-paced, contract role, balancing independent work with team collaboration and clear communication.
+• Built and tested AI/ML models and API integrations for internal research projects alongside senior engineers.
+• Implemented gaming experiment prototypes and applied Python best practices in AI/ML development.
 
 IT Assistant (Internship)
-Qaiwan Steel Company - Kifri
+Qaiwan Steel Company · Kifri, Iraq
 September 2024 – February 2025
-•	Assisted in system maintenance, network monitoring, and security to ensure smooth IT operations.
-•	Provided technical support, troubleshooting hardware and software issues across departments.
-•	Supported hardware installation, configuration, and software updates to improve system efficiency.
-•	Gained experience in database management, data backup procedures, and IT documentation.
-•	Contributed to IT solutions implementation, optimizing processes and improving operational workflows.
+• Maintained systems, monitored networks, and provided hardware/software support across departments.
+• Gained practical experience in database management, data backup, and IT documentation.
 
-Back End Engineer (Part-Time)
-Relevance - Remote
+Back-End Engineer Intern (Part-Time)
+Relevance · Remote
 May 2024 – July 2024
-•	Developed and maintained backend systems, ensuring scalability and reliability.
-•	Collaborated with the team to design and implement efficient APIs and database structures.
+• Developed backend systems and designed RESTful APIs and relational database schemas.
 
-Projects
-Wathifa - Job Matching Platform
-Using Full-Stack Development with Frontend (Vercel), Backend (Railway), Stripe API, and AWS Cloud Services
-Developed a comprehensive job-matching platform connecting international job seekers with MENA region employers. Built a dual-interface system with candidate profiles featuring automated readiness scoring (65% threshold for employer visibility), one-way messaging functionality, and employer dashboard with advanced filtering and candidate tagging capabilities. Implemented secure payment processing via Stripe for one-time user fees, AWS cloud storage for resume/photo management, and automated profile scoring algorithms to ensure quality candidate visibility.
+Selected Projects
 
-SleepyClock
-A sleep cycle calculator to help optimize sleep schedules!
-Key features: Smart sleep calculations, Fully responsive design, Dark/light mode toggle, Fast, lightweight (vanilla JS), Mobile-first approach, Built with pure HTML5, CSS3, and JavaScript.
+Companion — Agentic AI Desktop Controller (2026, Ongoing)
+AI agent application built on the Model Context Protocol (MCP), enabling agents to control the browser, access the local file system, manage Gmail, and execute multi-application workflows. Supports any LLM via OpenRouter integration.
+Stack: Python, MCP, OpenRouter, Multi-model AI
 
-AI-Powered Resume Analyzer
-Using Flask (Python), HTML/Bootstrap, JavaScript, pdfplumber, and OpenAI API
-Developed a web application that analyzes resumes against job descriptions using AI. The tool extracts text from PDFs/TXT files, calculates match percentages using OpenAI GPT-3.5-turbo, identifies missing keywords, and provides tailored improvement suggestions. Features include file upload handling, text extraction with pdfplumber, and dynamic analysis results display.
+Wathifa — Job Matching Platform (2024–2025)
+Full-stack platform connecting international job-seekers with MENA-region employers. Features automated candidate scoring, Stripe payment integration, and AWS S3 document storage.
+Stack: React, Node.js, Stripe, AWS S3
 
-Movie Research Assistant (RAG Agent)
-Using Python, Tkinter, TMDb API, OMDb API, and YouTube API
-Built a Python-based Retrieval Augmented Generation (RAG) agent to assist users in researching movies and TV shows. The application integrates with TMDb, OMDb, and YouTube APIs to fetch movie details, ratings, release dates, and trailers.
-https://github.com/AhmedDlshad007/rag_agent_project.git
+AI-Powered Resume Analyser (2024)
+Web application that analyses resumes against job descriptions using OpenAI GPT-3.5. Extracts text from PDFs, calculates match percentages, identifies missing keywords, and provides tailored improvement suggestions.
+Stack: Flask, Python, OpenAI API, pdfplumber
 
-Anime Character Generator
-Using Next.js, React, Tailwind CSS, and Replicate API (Stable Diffusion XL)
-Developed a web application that generates anime characters from text prompts using AI. The tool leverages Stable Diffusion XL via Replicate API to create unique character images. Features a clean, responsive interface built with Next.js and Tailwind CSS.
+Movie Research Assistant — RAG Agent (2024)
+Python-based RAG agent for researching movies and TV shows. Integrates TMDb, OMDb, and YouTube APIs to fetch comprehensive movie details, ratings, release dates, and trailers.
+Stack: Python, Tkinter, TMDb/OMDb/YouTube APIs
 
-AI Image Captioning & Tagging Tool
-Using React, TypeScript, Tailwind CSS, Hugging Face BLIP, and ResNet-50
-Developed a web application that automatically generates captions and tags for uploaded images using AI. The tool leverages Hugging Face's BLIP model for real-time captioning and ResNet-50 for image tagging. Features a responsive drag-and-drop interface built with React and Vite for optimal performance.
+AI Image Captioning & Tagging Tool (2024)
+Auto-generates captions and tags for uploaded images using Hugging Face BLIP and ResNet-50. Responsive drag-and-drop interface built with React and Vite.
+Stack: React, TypeScript, Hugging Face BLIP, ResNet-50
+
+SleepyClock (2024)
+Sleep cycle calculator with smart sleep calculations, fully responsive design, dark/light mode toggle, and mobile-first approach. Built with pure vanilla JavaScript.
+Stack: HTML5, CSS3, JavaScript
+
+Anime Character Generator (2024)
+Web application that generates anime characters from text prompts using Stable Diffusion XL via Replicate API.
+Stack: Next.js, React, Tailwind CSS, Replicate API
 `;
 
   /* ── messages state (shared by inline + floating chat) ── */
@@ -359,7 +366,7 @@ Developed a web application that automatically generates captions and tags for u
     document.head.appendChild(kfStyle);
 
     const nameText = "Ahmed Dlshad";
-    const subtitleText = "Junior Developer & Full Stack Engineer";
+    const subtitleText = "Full-Stack & Agentic AI Engineer";
     const descText = descEl.textContent?.trim().replace(/\s+/g, " ") || "";
 
     /* ── Fast path: user already saw the animation this session ── */
@@ -760,10 +767,10 @@ Developed a web application that automatically generates captions and tags for u
                 ref={heroDescRef}
                 style={{ opacity: 0 }}
               >
-                Graduate Software Engineer from University Technology Malaysia
-                (UTM) with expertise in AI/ML development, full-stack web
-                applications, and cloud services. Passionate about building
-                innovative solutions that make a difference.
+                Software Engineering graduate from Universiti Teknologi
+                Malaysia (UTM) now building agentic AI systems and full-stack
+                products at BlackCode. Focused on Model Context Protocol (MCP),
+                multi-model AI workflows, and shipping things that actually work.
               </p>
 
               {/* CTA Buttons */}
@@ -825,7 +832,7 @@ Developed a web application that automatically generates captions and tags for u
                   </svg>
                 </a>
                 <a
-                  href="https://www.linkedin.com/in/ahmed-dlshad-007/"
+                  href="https://www.linkedin.com/in/ahmed-dlshad1/"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="LinkedIn"
@@ -915,24 +922,25 @@ Developed a web application that automatically generates captions and tags for u
 
             <div className="about-content">
               <div className="about-text reveal from-left">
-                <h3>Turning Ideas Into Reality Through Code</h3>
+                <h3>Building Where Agentic AI Meets Full-Stack</h3>
                 <p>
-                  Hi! I&apos;m Ahmed Dlshad Mohammed, a Dynamic and highly
-                  motivated Software Engineer with a Bachelor&apos;s degree in
-                  Software Engineering from University Technology Malaysia (UTM),
-                  graduated March 2025.
+                  Hi! I&apos;m Ahmed Dlshad Mohammed, a Full-Stack &amp; Agentic
+                  AI Engineer at BlackCode (Switzerland, remote). I hold a B.Sc.
+                  in Software Engineering with honours from Universiti Teknologi
+                  Malaysia (UTM), graduated March 2025.
                 </p>
                 <p>
-                  I specialize in AI/ML development, full-stack web applications,
-                  and cloud services. With hands-on experience at BlackCode
-                  working on AI/ML models and gaming prototypes, I bring creative
-                  problem-solving and technical expertise to every project.
+                  My current focus is Companion — an Agentic AI desktop
+                  controller built on the Model Context Protocol (MCP). It lets
+                  AI agents drive the browser, the local filesystem, and Gmail,
+                  with multi-model support through OpenRouter. Alongside it, I
+                  lead React/Next.js + Node.js/Python product work.
                 </p>
                 <p>
-                  Proficient in C++, Java, Python, HTML5/CSS, and JavaScript,
-                  I&apos;m fluent in Kurdish, Arabic, and English. I&apos;m
-                  passionate about leveraging cutting-edge technologies to build
-                  solutions that make a real impact.
+                  I work across Python, TypeScript, C++, and Java. Native Kurdish
+                  and Arabic speaker, proficient in English (B2–C1). I&apos;m
+                  driven by problems where good engineering and AI capability
+                  combine into something genuinely useful.
                 </p>
                 <div className="stats-grid">
                   <div
@@ -946,7 +954,7 @@ Developed a web application that automatically generates captions and tags for u
                     className="stat-card reveal"
                     style={{ transitionDelay: "0.2s" }}
                   >
-                    <h4>6+</h4>
+                    <h4>7+</h4>
                     <p>Projects Completed</p>
                   </div>
                   <div
@@ -960,10 +968,43 @@ Developed a web application that automatically generates captions and tags for u
               </div>
 
               <div id="skills" className="skills-grid">
-                {/* Frontend */}
+                {/* Languages */}
                 <div
                   className="skill-category reveal"
                   style={{ transitionDelay: "0.1s" }}
+                >
+                  <div className="category-icon">
+                    <svg
+                      width="32"
+                      height="32"
+                      viewBox="0 0 32 32"
+                      fill="none"
+                    >
+                      <path
+                        d="M9 9L4 16L9 23M23 9L28 16L23 23M19 6L13 26"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                  <h3>Languages</h3>
+                  <div className="skill-tags">
+                    <span className="skill-tag">Python</span>
+                    <span className="skill-tag">JavaScript</span>
+                    <span className="skill-tag">TypeScript</span>
+                    <span className="skill-tag">C++</span>
+                    <span className="skill-tag">Java</span>
+                    <span className="skill-tag">HTML5</span>
+                    <span className="skill-tag">CSS3</span>
+                  </div>
+                </div>
+
+                {/* Frameworks */}
+                <div
+                  className="skill-category reveal"
+                  style={{ transitionDelay: "0.2s" }}
                 >
                   <div className="category-icon">
                     <svg
@@ -995,57 +1036,17 @@ Developed a web application that automatically generates captions and tags for u
                       />
                     </svg>
                   </div>
-                  <h3>Frontend</h3>
+                  <h3>Frameworks</h3>
                   <div className="skill-tags">
-                    <span className="skill-tag">HTML5</span>
-                    <span className="skill-tag">CSS3</span>
-                    <span className="skill-tag">JavaScript</span>
                     <span className="skill-tag">React</span>
                     <span className="skill-tag">Next.js</span>
-                    <span className="skill-tag">Vue.js</span>
+                    <span className="skill-tag">Node.js</span>
+                    <span className="skill-tag">Flask</span>
                     <span className="skill-tag">Tailwind CSS</span>
                   </div>
                 </div>
 
-                {/* Backend */}
-                <div
-                  className="skill-category reveal"
-                  style={{ transitionDelay: "0.2s" }}
-                >
-                  <div className="category-icon">
-                    <svg
-                      width="32"
-                      height="32"
-                      viewBox="0 0 32 32"
-                      fill="none"
-                    >
-                      <path
-                        d="M16 4V28M28 16H4"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                      />
-                      <circle
-                        cx="16"
-                        cy="16"
-                        r="12"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      />
-                    </svg>
-                  </div>
-                  <h3>Backend</h3>
-                  <div className="skill-tags">
-                    <span className="skill-tag">Node.js</span>
-                    <span className="skill-tag">Express</span>
-                    <span className="skill-tag">Python</span>
-                    <span className="skill-tag">Java</span>
-                    <span className="skill-tag">C++</span>
-                    <span className="skill-tag">PHP</span>
-                  </div>
-                </div>
-
-                {/* Mobile & Cloud */}
+                {/* AI / Agents */}
                 <div
                   className="skill-category reveal"
                   style={{ transitionDelay: "0.3s" }}
@@ -1057,26 +1058,70 @@ Developed a web application that automatically generates captions and tags for u
                       viewBox="0 0 32 32"
                       fill="none"
                     >
-                      <rect
-                        x="4"
-                        y="8"
-                        width="24"
-                        height="16"
-                        rx="2"
+                      <circle cx="16" cy="16" r="3" fill="currentColor" />
+                      <circle
+                        cx="16"
+                        cy="16"
+                        r="10"
                         stroke="currentColor"
                         strokeWidth="2"
                       />
-                      <path d="M12 12L20 16L12 20V12Z" fill="currentColor" />
+                      <path
+                        d="M16 6V2M16 30V26M26 16H30M2 16H6M23 9L26 6M6 26L9 23M23 23L26 26M6 6L9 9"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
                     </svg>
                   </div>
-                  <h3>Mobile &amp; Cloud</h3>
+                  <h3>AI &amp; Agents</h3>
                   <div className="skill-tags">
-                    <span className="skill-tag">Flutter</span>
-                    <span className="skill-tag">Dart</span>
-                    <span className="skill-tag">Firebase</span>
-                    <span className="skill-tag">Azure</span>
+                    <span className="skill-tag">Agentic AI</span>
+                    <span className="skill-tag">MCP</span>
+                    <span className="skill-tag">OpenRouter</span>
+                    <span className="skill-tag">OpenAI API</span>
+                    <span className="skill-tag">Hugging Face</span>
+                    <span className="skill-tag">RAG</span>
+                    <span className="skill-tag">Stable Diffusion</span>
+                  </div>
+                </div>
+
+                {/* Cloud & Tools */}
+                <div
+                  className="skill-category reveal"
+                  style={{ transitionDelay: "0.4s" }}
+                >
+                  <div className="category-icon">
+                    <svg
+                      width="32"
+                      height="32"
+                      viewBox="0 0 32 32"
+                      fill="none"
+                    >
+                      <path
+                        d="M22 18C25.3137 18 28 15.3137 28 12C28 8.68629 25.3137 6 22 6C21.7376 6 21.4789 6.01686 21.2253 6.04955C20.0832 4.21841 18.0508 3 15.7273 3C12.4286 3 9.71429 5.39674 9.20889 8.55556C9.13889 8.55159 9.06806 8.55556 9 8.55556C5.13401 8.55556 2 11.6896 2 15.5556C2 19.4215 5.13401 22.5556 9 22.5556H22"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M14 22L16 26L18 22M16 16V26"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                  <h3>Cloud &amp; Tools</h3>
+                  <div className="skill-tags">
                     <span className="skill-tag">AWS</span>
                     <span className="skill-tag">Docker</span>
+                    <span className="skill-tag">Vercel</span>
+                    <span className="skill-tag">Railway</span>
+                    <span className="skill-tag">Git</span>
+                    <span className="skill-tag">GitHub</span>
                   </div>
                 </div>
               </div>
@@ -1101,27 +1146,32 @@ Developed a web application that automatically generates captions and tags for u
                 <div className="timeline-content">
                   <div className="timeline-header">
                     <div>
-                      <h3>Junior Developer (Contract)</h3>
-                      <h4>BlackCode</h4>
+                      <h3>Full-Stack &amp; Agentic AI Engineer (Full-Time)</h3>
+                      <h4>BlackCode · Switzerland (Remote)</h4>
                     </div>
-                    <span className="timeline-date">Mar 2025 – May 2025</span>
+                    <span className="timeline-date">Feb 2026 – Present</span>
                   </div>
                   <ul className="timeline-list">
                     <li>
-                      Assisted in building and testing AI/ML models and API
-                      implementations in a remote team environment
+                      Lead full-stack development using React/Next.js (frontend)
+                      and Node.js/Python (backend), with focus on performance
+                      and scalability
                     </li>
                     <li>
-                      Collaborated on gaming experiment prototypes, brainstorming
-                      and implementing innovative ideas
+                      Engineer Companion — an Agentic AI desktop controller built
+                      on the Model Context Protocol (MCP), enabling AI agents to
+                      control the browser, access the local file system,
+                      interact with Gmail, and execute cross-application
+                      workflows
                     </li>
                     <li>
-                      Developed Python proficiency applying new technologies and
-                      best practices in AI and ML
+                      Integrated OpenRouter to support any large language model
+                      within Companion, giving users flexible multi-model AI
+                      access from a single interface
                     </li>
                     <li>
-                      Delivered results in a fast-paced contract role with clear
-                      communication
+                      Design and maintain MCP server integrations and autonomous
+                      agent pipelines for real-world task automation
                     </li>
                   </ul>
                 </div>
@@ -1135,27 +1185,19 @@ Developed a web application that automatically generates captions and tags for u
                 <div className="timeline-content">
                   <div className="timeline-header">
                     <div>
-                      <h3>IT Assistant (Internship)</h3>
-                      <h4>Qaiwan Steel Company</h4>
+                      <h3>Junior Developer (Contract)</h3>
+                      <h4>BlackCode · Switzerland (Remote)</h4>
                     </div>
-                    <span className="timeline-date">Sep 2024 – Feb 2025</span>
+                    <span className="timeline-date">Mar 2025 – May 2025</span>
                   </div>
                   <ul className="timeline-list">
                     <li>
-                      Assisted in system maintenance, network monitoring, and
-                      security
+                      Built and tested AI/ML models and API integrations for
+                      internal research projects alongside senior engineers
                     </li>
                     <li>
-                      Provided technical support, troubleshooting hardware and
-                      software issues across departments
-                    </li>
-                    <li>
-                      Supported hardware installation, configuration, and
-                      software updates
-                    </li>
-                    <li>
-                      Contributed to IT solutions implementation, optimizing
-                      operational workflows
+                      Implemented gaming experiment prototypes and applied
+                      Python best practices in AI/ML development
                     </li>
                   </ul>
                 </div>
@@ -1169,19 +1211,41 @@ Developed a web application that automatically generates captions and tags for u
                 <div className="timeline-content">
                   <div className="timeline-header">
                     <div>
-                      <h3>Back End Engineer (Part-Time)</h3>
-                      <h4>Relevance</h4>
+                      <h3>IT Assistant (Internship)</h3>
+                      <h4>Qaiwan Steel Company · Kifri, Iraq</h4>
+                    </div>
+                    <span className="timeline-date">Sep 2024 – Feb 2025</span>
+                  </div>
+                  <ul className="timeline-list">
+                    <li>
+                      Maintained systems, monitored networks, and provided
+                      hardware/software support across departments
+                    </li>
+                    <li>
+                      Gained practical experience in database management, data
+                      backup, and IT documentation
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div
+                className="timeline-item reveal from-left"
+                style={{ transitionDelay: "0.35s" }}
+              >
+                <div className="timeline-dot"></div>
+                <div className="timeline-content">
+                  <div className="timeline-header">
+                    <div>
+                      <h3>Back-End Engineer Intern (Part-Time)</h3>
+                      <h4>Relevance · Remote</h4>
                     </div>
                     <span className="timeline-date">May 2024 – Jul 2024</span>
                   </div>
                   <ul className="timeline-list">
                     <li>
-                      Developed and maintained backend systems, ensuring
-                      scalability and reliability
-                    </li>
-                    <li>
-                      Collaborated to design and implement efficient APIs and
-                      database structures
+                      Developed backend systems and designed RESTful APIs and
+                      relational database schemas
                     </li>
                   </ul>
                 </div>
@@ -1199,10 +1263,44 @@ Developed a web application that automatically generates captions and tags for u
             </div>
 
             <div className="projects-grid">
-              {/* Wathifa */}
+              {/* Companion — Agentic AI Desktop Controller (featured, ongoing) */}
               <div
                 className="project-card featured reveal scale-in"
                 style={{ transitionDelay: "0.05s" }}
+              >
+                <div className="project-image">
+                  <img
+                    src="./imgs/code.jpg"
+                    alt="Companion Agentic AI Desktop Controller"
+                  />
+                  <div className="project-overlay">
+                    <a href="#projects" className="project-link">
+                      <ProjectLinkSvg />
+                    </a>
+                  </div>
+                </div>
+                <div className="project-content">
+                  <div className="project-tags">
+                    <span>Agentic AI</span>
+                    <span>MCP</span>
+                    <span>OpenRouter</span>
+                    <span>Python</span>
+                  </div>
+                  <h3>Companion — Agentic AI Desktop Controller</h3>
+                  <p>
+                    AI agent application built on the Model Context Protocol
+                    (MCP). Lets AI agents control the browser, access the local
+                    file system, manage Gmail, and execute multi-application
+                    workflows. Supports any LLM via OpenRouter integration.
+                    Currently in active development at BlackCode.
+                  </p>
+                </div>
+              </div>
+
+              {/* Wathifa */}
+              <div
+                className="project-card reveal scale-in"
+                style={{ transitionDelay: "0.1s" }}
               >
                 <div className="project-image">
                   <img
@@ -1497,7 +1595,7 @@ Developed a web application that automatically generates captions and tags for u
                   </a>
 
                   <a
-                    href="http://www.linkedin.com/in/ahmed-dlshad-007/"
+                    href="https://www.linkedin.com/in/ahmed-dlshad1/"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="contact-method"
@@ -1648,7 +1746,7 @@ Developed a web application that automatically generates captions and tags for u
                     GitHub
                   </a>
                   <a
-                    href="https://www.linkedin.com/in/ahmed-dlshad-007/"
+                    href="https://www.linkedin.com/in/ahmed-dlshad1/"
                     target="_blank"
                     rel="noopener noreferrer"
                   >

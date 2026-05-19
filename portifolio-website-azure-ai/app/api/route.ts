@@ -9,65 +9,69 @@ const openai = new OpenAI({
 
 // Resume content to provide context to the AI
 const resumeContent = `
-Ahmed Dlshad Muhammed
-Software Engineering Student 
-University Technology Malaysia (UTM), 4th Year Sulaymaniyah, Sulaymaniyah Governorate, Iraq ahmed.dlshad.m@gmail.com 
-LinkedIn: https://www.linkedin.com/in/ahmed-dlshad-007/
-  
-Summary 
-Dynamic and highly motivated Software Engineer with a Bachelor's degree in Software 
-Engineering from University Technology Malaysia. Proficient in C++, Java, Dart, Flutter, HTML5/CSS, and JavaScript. Fluent in Kurdish, Arabic, and English. Eager to leverage academic background and practical experience to contribute effectively to innovative software development projects. 
-  
-Education 
-Bachelor's Degree in Computer Software Engineering 
-University Technology Malaysia (UTM), September 2020 - March 2025 
-  
-Key Skills 
-•	Mobile Applications (Proficient) 
-•	Web Development (Proficient) 
-•	Software Development (Proficient) 
-  
-Certifications 
-AWS Academy Graduate - AWS Academy Cloud Foundations, June 2023 
-Amazon Web Services Training and Certification 
-Certification Link 
-  
-Languages 
-	• 	Kurdish: Native 	 	Arabic: Fluent  	English: Fluent 
-  
-Experience 
-Back End Engineer (Part-Time) 
-Relevance 
-May 2024 – July 2024 
-•Develop and maintain backend systems, ensuring scalability and reliability. 
-•Collaborate with the team to design and implement efficient APIs and database structures. 
-•Contribute to the optimization and performance tuning of existing backend services.
-IT assistant (internship)
-Qaiwan Steel Company
+Ahmed Dlshad Mohammed
+Full-Stack & Agentic AI Engineer
+ahmed.dlshad.m@gmail.com | +964 772 962 5434 | Sulaymaniyah, Iraq
+GitHub: github.com/AhmedDlshad007 | Portfolio: ahmed-dlshad-portfolio.vercel.app
+LinkedIn: linkedin.com/in/ahmed-dlshad1
+
+Education
+B.Sc. Software Engineering (Honours), graduated March 2025
+Universiti Teknologi Malaysia (UTM) via Qaiwan International University, Sulaymaniyah
+Specialisation: Software Engineering, Full-Stack Development, AI/ML
+
+Technical Skills
+Programming: Python, JavaScript / TypeScript, C++, Java, HTML5/CSS3
+Frameworks: React, Next.js, Node.js, Flask, Tailwind CSS
+AI / Agents: Agentic AI, MCP (Model Context Protocol), OpenRouter, OpenAI API, Hugging Face, RAG, Stable Diffusion
+Cloud & Tools: AWS (Cloud Foundations), Docker, Vercel, Railway, Git/GitHub
+
+Languages
+Kurdish — Native | Arabic — Fluent | English — Proficient (B2–C1)
+
+Certifications
+AWS Academy Graduate — Cloud Foundations, Amazon Web Services, June 2023
+
+Work Experience
+
+Full-Stack & Agentic AI Engineer (Full-Time)
+BlackCode · Switzerland (Remote)
+February 2026 – Present
+• Lead full-stack development of company products using React/Next.js (frontend) and Node.js/Python (backend).
+• Engineer Companion — an Agentic AI desktop controller built on the Model Context Protocol (MCP), enabling AI agents to control the browser, access the local file system, interact with Gmail, and execute cross-application workflows.
+• Integrated OpenRouter to support any large language model within Companion, giving users flexible multi-model AI access.
+• Design and maintain MCP server integrations and autonomous agent pipelines for real-world task automation.
+
+Junior Developer (Contract)
+BlackCode · Switzerland (Remote)
+March 2025 – May 2025
+• Built and tested AI/ML models and API integrations for internal research projects alongside senior engineers.
+• Implemented gaming experiment prototypes and applied Python best practices in AI/ML development.
+
+IT Assistant (Internship)
+Qaiwan Steel Company · Kifri, Iraq
 September 2024 – February 2025
-•	Assisted in system maintenance, network monitoring, and security to ensure smooth IT operations.
-•	Provided technical support, troubleshooting hardware and software issues across departments.
-•	Supported hardware installation, configuration, and software updates to improve system efficiency.
-•	Gained experience in database management, data backup procedures, and IT documentation.
-•	Contributed to IT solutions implementation, optimizing processes and improving operational workflows.
-•	Developed problem-solving, technical, and teamwork skills in a professional IT environment.
-  
-Projects 
-University Event Manager Application 
-Using Dart, Flutter, and Firebase 
-Developed a comprehensive event management application tailored for university settings. The application facilitates event organization, management, and participation, leveraging Dart and Flutter for the front-end and Firebase for backend services. 
-Movie Research Assistant (RAG Agent)
-Using Python, Tkinter, TMDb API, OMDb API, and YouTube API
-Built a Python-based Retrieval Augmented Generation (RAG) agent to assist users in researching movies and TV shows. The application integrates with TMDb, OMDb, and YouTube APIs to fetch movie details, ratings, release dates, and trailers.
-https://github.com/AhmedDlshad007/rag_agent_project.git 
-AI-OS (Intelligent Operating System Interface)
-Using Python, Electron, WebSockets, Anthropic Claude API, and LangChain
-Built an intelligent operating system interface powered by Claude 3 Opus that allows users to interact with their computer using natural language. The application seamlessly integrates system operations, web services, and external APIs through a modular architecture of Master Control Programs (MCPs).
-https://github.com/AhmedDlshad007/AI-OS.git 
-• Implemented WebSocket-based communication between Python backend and Electron UI for real-time interaction.
-• Developed a comprehensive toolset for file system operations, web browsing, voice input/output, and process management.
-• Created Master Control Programs (MCPs) for integrating external services including weather, maps, translation, and search.
-• Built an intuitive Electron-based UI with voice and text input methods.
+• Maintained systems, monitored networks, and provided hardware/software support across departments.
+• Gained practical experience in database management, data backup, and IT documentation.
+
+Back-End Engineer Intern (Part-Time)
+Relevance · Remote
+May 2024 – July 2024
+• Developed backend systems and designed RESTful APIs and relational database schemas.
+
+Selected Projects
+
+Companion — Agentic AI Desktop Controller (2026, Ongoing)
+AI agent application built on the Model Context Protocol (MCP), enabling agents to control the browser, access the local file system, manage Gmail, and execute multi-application workflows. Supports any LLM via OpenRouter integration.
+Stack: Python, MCP, OpenRouter, Multi-model AI
+
+Wathifa — Job Matching Platform (2024–2025)
+Full-stack platform connecting international job-seekers with MENA-region employers. Features automated candidate scoring, Stripe payment integration, and AWS S3 document storage.
+Stack: React, Node.js, Stripe, AWS S3
+
+AI-Powered Resume Analyser, Movie RAG Agent, AI Image Captioning Tool (2024)
+Series of AI-driven web applications utilising OpenAI GPT-3.5, Hugging Face BLIP, ResNet-50, and multi-API RAG pipelines for document analysis, conversational retrieval, and image understanding.
+Stack: Flask, React, TypeScript, Python, OpenAI API, Hugging Face
 `;
 
 export async function POST(request: Request) {
