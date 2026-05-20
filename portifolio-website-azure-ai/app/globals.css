@@ -362,8 +362,8 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
   animation: marquee 40s linear infinite; will-change: transform;
   width: max-content;
 }
-.track span { opacity: 0.45; transition: opacity 0.3s ease; }
-.track span:hover { opacity: 0.85; }
+.track span { opacity: 0.72; transition: opacity 0.3s ease; }
+.track span:hover { opacity: 1; }
 @keyframes marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
 
 /* ── Section shared ── */
@@ -826,4 +826,19 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
   .stats-grid { grid-template-columns: 1fr; }
   #float-chat-panel { width: calc(100vw - 32px); right: 16px; bottom: 100px; }
   #float-chat-btn { bottom: 24px; right: 16px; }
+}
+
+/* ── Accessibility: respect prefers-reduced-motion ──
+   Neutralise all animation/transition and force scroll-reveal content visible.
+   The space engine and hero sequence are additionally toned down in page.tsx. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .reveal { opacity: 1 !important; transform: none !important; }
+  .track { animation: none !important; }
+  .track span { opacity: 0.78; }
 }

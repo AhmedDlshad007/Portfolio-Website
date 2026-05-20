@@ -9,6 +9,7 @@ declare global {
     bootSpace: (cfg: Record<string, unknown>) => void;
     updateSpaceCfg: (cfg: Record<string, unknown>) => void;
     stopSpace: () => void;
+    warpBurst: (intensity?: number) => void;
   }
 }
 
@@ -16,8 +17,9 @@ declare global {
    Marquee tech list (text spans, repeated for seamless loop)
 ──────────────────────────────────────────── */
 const MARQUEE_TECHS = [
-  "HTML5", "CSS3", "JavaScript", "React", "Next.js", "Python",
-  "Flutter", "AWS", "Azure", "Node.js", "TypeScript", "Docker",
+  "Python", "TypeScript", "JavaScript", "React", "Next.js", "Node.js",
+  "Flask", "Tailwind CSS", "MCP", "OpenRouter", "OpenAI API", "Hugging Face",
+  "RAG", "AWS", "Docker", "Vercel", "Git", "C++",
 ];
 
 const marqueeSpanStyle: React.CSSProperties = {
@@ -318,28 +320,40 @@ Stack: Next.js, React, Tailwind CSS, Replicate API
      1) SPACE ENGINE BOOT
   ══════════════════════════════════════════ */
   useEffect(() => {
+    const reduce =
+      typeof window !== "undefined" &&
+      window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let freezeTimer: ReturnType<typeof setTimeout> | undefined;
     const script = document.createElement("script");
     script.src = "/space-engine.js";
     script.onload = () => {
       if (window.bootSpace) {
         window.bootSpace({
           blobCount: 0,
-          reactivity: 75,
+          reactivity: reduce ? 0 : 75,
           blurAmount: 50,
           opacity: 4,
           colorMode: "deep-space",
-          scrollShift: true,
-          rippleOnClick: true,
+          scrollShift: !reduce,
+          rippleOnClick: !reduce,
           gridLines: false,
           speed: 50,
           starCount: 550,
-          showStreaks: true,
-          warpEffect: true,
+          showStreaks: !reduce,
+          warpEffect: !reduce,
         });
+        // Reduced motion: let the layered scene build, then freeze to a static starfield.
+        if (reduce) {
+          freezeTimer = setTimeout(() => {
+            if (window.stopSpace) window.stopSpace();
+          }, 400);
+        }
       }
     };
     document.body.appendChild(script);
     return () => {
+      if (freezeTimer) clearTimeout(freezeTimer);
       if (window.stopSpace) window.stopSpace();
       if (script.parentNode) script.parentNode.removeChild(script);
     };
@@ -369,8 +383,14 @@ Stack: Next.js, React, Tailwind CSS, Replicate API
     const subtitleText = "Full-Stack & Agentic AI Engineer";
     const descText = descEl.textContent?.trim().replace(/\s+/g, " ") || "";
 
-    /* ── Fast path: user already saw the animation this session ── */
-    const alreadyPlayed = typeof window !== "undefined" && sessionStorage.getItem("hero-animated") === "1";
+    /* ── Fast path: already seen this session, or user prefers reduced motion ── */
+    const prefersReduced =
+      typeof window !== "undefined" &&
+      window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const alreadyPlayed =
+      (typeof window !== "undefined" && sessionStorage.getItem("hero-animated") === "1") ||
+      prefersReduced;
 
     if (alreadyPlayed) {
       nameEl.innerHTML = "";
@@ -577,6 +597,40 @@ Stack: Next.js, React, Tailwind CSS, Replicate API
 
     document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
     return () => observer.disconnect();
+  }, []);
+
+  /* ══════════════════════════════════════════
+     5b) SECTION WARP JUMPS — surge the starfield on each new section
+  ══════════════════════════════════════════ */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const reduce =
+      window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) return;
+
+    let armed = false; // skip the bursts that would fire as sections paint on first load
+    const armTimer = setTimeout(() => {
+      armed = true;
+    }, 1600);
+    let lastWarp = 0;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!armed) return;
+        const now = performance.now();
+        if (entries.some((e) => e.isIntersecting) && now - lastWarp > 900) {
+          lastWarp = now;
+          if (window.warpBurst) window.warpBurst(1);
+        }
+      },
+      { threshold: 0.35 }
+    );
+
+    document.querySelectorAll("section").forEach((s) => observer.observe(s));
+    return () => {
+      clearTimeout(armTimer);
+      observer.disconnect();
+    };
   }, []);
 
   /* ══════════════════════════════════════════

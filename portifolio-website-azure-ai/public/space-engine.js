@@ -355,10 +355,15 @@ function makeStreak() {
    WARP PULSES
 ══════════════════════════════════════════════ */
 let warpPulses = [];
-function spawnWarpPulse() {
-  if (warpPulses.length < 3)
-    warpPulses.push({ r:0, maxR: Math.max(W,H)*0.85, alpha:0.035, speed:0.4+Math.random()*0.35 });
+function spawnWarpPulse(alpha, speed) {
+  if (warpPulses.length < 6)
+    warpPulses.push({ r:0, maxR: Math.max(W,H)*0.85, alpha: alpha || 0.035, speed: speed || (0.4+Math.random()*0.35) });
 }
+
+/* Warp-jump flight: warpVel is a decaying surge kicked on section changes;
+   warpFlight is the integrated forward travel it adds to every layer's scrollDepth. */
+let warpVel = 0;
+let warpFlight = 0;
 
 /* ══════════════════════════════════════════════
    MOUSE TRAIL
@@ -647,6 +652,11 @@ function drawFrame(timestamp) {
 
   if (cfg.warpEffect && warpAccum > 3.0 + Math.random() * 2.0) { spawnWarpPulse(); warpAccum = 0; }
 
+  /* Warp-jump surge: kicked by window.warpBurst() on section changes, decays fast (~0.2s) */
+  warpVel *= Math.pow(0.01, dt);
+  if (warpVel < 0.0008) warpVel = 0;
+  warpFlight += warpVel * dt;
+
   /* Micro-flash events — very rare */
   if (flashAccum > 1.3 + Math.random() * 3.3) {
     flashes.push({ x: Math.random()*W, y: Math.random()*H, alpha: 0.4+Math.random()*0.5, r: 2+Math.random()*4, decay: 2.4+Math.random()*1.8 });
@@ -737,7 +747,7 @@ function drawFrame(timestamp) {
   /* ═══ LAYER 7: Star clusters ═══ */
   ctx.save();
   clusters.forEach(cl => {
-    const scrollDepth = cfg.scrollShift ? scroll * 0.0003 : 0;
+    const scrollDepth = (cfg.scrollShift ? scroll * 0.0003 : 0) + warpFlight;
     let cz = cl.z - scrollDepth;
     cz = ((cz % 1.0) + 1.0) % 1.0;
     if (cz < 0.01) cz += 0.01;
@@ -758,7 +768,7 @@ function drawFrame(timestamp) {
   /* ═══ LAYER 8: Galaxies (with spiral rendering) ═══ */
   ctx.save();
   galaxies.forEach(gal => {
-    const scrollDepth = cfg.scrollShift ? scroll * 0.0003 : 0;
+    const scrollDepth = (cfg.scrollShift ? scroll * 0.0003 : 0) + warpFlight;
     let gz = gal.z - scrollDepth;
     gz = ((gz % 1.0) + 1.0) % 1.0;
     if (gz < 0.01) gz += 0.01;
@@ -1066,4 +1076,13 @@ window.updateSpaceCfg = function(newCfg) {
     initDeepField();
     createOffscreenCanvases();
   }
+};
+
+/* Trigger a warp jump — a quick forward surge plus brighter pulse rings.
+   Call on section changes for a "jumping through space" feel. */
+window.warpBurst = function(intensity) {
+  const k = intensity || 1;
+  warpVel += 0.95 * k;
+  spawnWarpPulse(0.11 * k, 0.85 + Math.random() * 0.4);
+  spawnWarpPulse(0.06 * k, 0.6 + Math.random() * 0.35);
 };
