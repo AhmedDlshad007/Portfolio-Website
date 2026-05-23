@@ -102,9 +102,9 @@ type ChatMessage = { role: string; content: string };
 
 export async function POST(request: Request) {
   const apiKey = process.env.OPENROUTER_API_KEY;
-  // Free model by default. Override via OPENROUTER_MODEL (e.g.
-  // "anthropic/claude-3.5-haiku" or "google/gemini-2.5-flash") — no code change needed.
-  const model = process.env.OPENROUTER_MODEL || "deepseek/deepseek-v4-flash:free";
+  // Cheap, reliable default (~$0.002/chat). Override via OPENROUTER_MODEL
+  // (e.g. "google/gemini-2.5-flash" for lower cost) — no code change needed.
+  const model = process.env.OPENROUTER_MODEL || "anthropic/claude-haiku-4.5";
   if (!apiKey) {
     console.error("OPENROUTER_API_KEY is not set on the server.");
     return NextResponse.json(
@@ -144,7 +144,7 @@ export async function POST(request: Request) {
             content: m.content,
           })),
         ],
-        max_tokens: 150,
+        max_tokens: 350,
         temperature: 0.7,
       }),
     });
