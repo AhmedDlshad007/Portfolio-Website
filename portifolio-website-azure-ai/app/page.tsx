@@ -81,7 +81,7 @@ const PROJECTS: Project[] = [
     tags: ["HTML5", "CSS3", "JavaScript"],
     desc: "Sleep cycle calculator to help optimize sleep schedules. Smart sleep calculations, fully responsive design, a dark/light mode toggle, and a mobile-first approach — built with pure vanilla JavaScript.",
     href: "https://github.com/AhmedDlshad007/SleepyClock",
-    hue: 205,
+    hue: 196,
   },
   {
     title: "Movie Research Assistant (RAG Agent)",

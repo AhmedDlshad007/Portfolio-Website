@@ -526,8 +526,8 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
   position: absolute; inset: -40%;
   z-index: 0; pointer-events: none;
   background:
-    radial-gradient(42% 42% at 28% 30%, hsla(var(--hue,170), 80%, 52%, 0.34), transparent 70%),
-    radial-gradient(46% 46% at 74% 70%, hsla(calc(var(--hue,170) + 34), 85%, 56%, 0.24), transparent 70%);
+    radial-gradient(50% 50% at 28% 30%, hsla(var(--hue,170), 88%, 60%, 0.44), transparent 72%),
+    radial-gradient(54% 54% at 74% 70%, hsla(calc(var(--hue,170) + 34), 90%, 62%, 0.32), transparent 74%);
   filter: blur(22px);
   animation: aurora-drift 19s ease-in-out infinite alternate;
 }
@@ -562,7 +562,14 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
   display: flex; flex-direction: column;
   height: 100%; padding: 26px;
 }
-.project-card.featured .project-content { padding: 40px; justify-content: flex-end; }
+.project-card.featured .project-content { padding: 44px; justify-content: center; }
+/* The featured tile is large — bloom the aurora across it so the upper area
+   isn't an empty void. */
+.project-card.featured::before {
+  background:
+    radial-gradient(72% 64% at 32% 28%, hsla(var(--hue,170), 90%, 62%, 0.46), transparent 72%),
+    radial-gradient(64% 66% at 82% 84%, hsla(calc(var(--hue,170) + 30), 92%, 64%, 0.34), transparent 74%);
+}
 
 .project-badge {
   align-self: flex-start; margin-bottom: 14px;
