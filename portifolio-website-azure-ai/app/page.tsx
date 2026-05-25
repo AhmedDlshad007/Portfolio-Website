@@ -40,21 +40,72 @@ const SUGGESTED_PROMPTS = [
 ];
 
 /* ────────────────────────────────────────────
-   Project link SVG (reused across all cards)
+   Featured projects (Aurora Bento). `hue` tints each card's drifting
+   aurora; `featured` = large 2×2 tile, `wide` = full-width tile.
 ──────────────────────────────────────────── */
-function ProjectLinkSvg() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M18 13V19C18 19.5304 17.7893 20.0391 17.4142 20.4142C17.0391 20.7893 16.5304 21 16 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V8C3 7.46957 3.21071 6.96086 3.58579 6.58579C3.96086 6.21071 4.46957 6 5 6H11M15 3H21M21 3V9M21 3L10 14"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
+type Project = {
+  title: string;
+  tags: string[];
+  desc: string;
+  href?: string;
+  featured?: boolean;
+  wide?: boolean;
+  badge?: string;
+  hue: number;
+};
+
+const PROJECTS: Project[] = [
+  {
+    title: "Companion — Agentic AI Desktop Controller",
+    tags: ["Agentic AI", "MCP", "OpenRouter", "Python"],
+    desc: "AI agent application built on the Model Context Protocol (MCP). Lets AI agents control the browser, access the local file system, manage Gmail, and execute multi-application workflows. Supports any LLM via OpenRouter integration. Currently in active development at BlackCode.",
+    featured: true,
+    badge: "Ongoing",
+    hue: 168,
+  },
+  {
+    title: "Wathifa — Job Matching Platform",
+    tags: ["Full-Stack", "Stripe API", "AWS"],
+    desc: "Comprehensive job-matching platform connecting international job seekers with MENA region employers. Features automated readiness scoring (65% threshold), one-way messaging, an employer dashboard with advanced filtering, secure Stripe payment processing, and AWS cloud storage for resume management.",
+    hue: 150,
+  },
+  {
+    title: "AI-Powered Resume Analyzer",
+    tags: ["Flask", "OpenAI", "Python"],
+    desc: "Web application that analyzes resumes against job descriptions using OpenAI GPT-3.5-turbo. Extracts text from PDFs/TXT files, calculates match percentages, identifies missing keywords, and provides tailored improvement suggestions.",
+    href: "https://github.com/AhmedDlshad007/AI-Resume-Analyzer",
+    hue: 190,
+  },
+  {
+    title: "SleepyClock",
+    tags: ["HTML5", "CSS3", "JavaScript"],
+    desc: "Sleep cycle calculator to help optimize sleep schedules. Smart sleep calculations, fully responsive design, a dark/light mode toggle, and a mobile-first approach — built with pure vanilla JavaScript.",
+    href: "https://github.com/AhmedDlshad007/SleepyClock",
+    hue: 205,
+  },
+  {
+    title: "Movie Research Assistant (RAG Agent)",
+    tags: ["Python", "Tkinter", "RAG"],
+    desc: "Python-based Retrieval Augmented Generation agent for researching movies and TV shows. Integrates TMDb, OMDb, and YouTube APIs to fetch comprehensive details, ratings, release dates, and trailers.",
+    href: "https://github.com/AhmedDlshad007/rag_agent_project.git",
+    hue: 172,
+  },
+  {
+    title: "Anime Character Generator",
+    tags: ["Next.js", "Stable Diffusion", "AI"],
+    desc: "Web application that generates anime characters from text prompts using Stable Diffusion XL via the Replicate API. Clean, responsive interface built with Next.js and Tailwind CSS — unique character artwork in seconds.",
+    href: "https://github.com/AhmedDlshad007/Anime-Character-Generator.git",
+    hue: 262,
+  },
+  {
+    title: "AI Image Captioning & Tagging Tool",
+    tags: ["React", "TypeScript", "Hugging Face"],
+    desc: "Automatically generates captions and tags for uploaded images using Hugging Face's BLIP model for real-time captioning and ResNet-50 for tagging. Responsive drag-and-drop interface built with React and Vite.",
+    href: "https://github.com/AhmedDlshad007/AI-Image-Captioning",
+    wide: true,
+    hue: 158,
+  },
+];
 
 /* ────────────────────────────────────────────
    Lightweight markdown for assistant replies
@@ -1428,319 +1479,46 @@ export default function Home() {
             </div>
 
             <div className="projects-grid">
-              {/* Companion — Agentic AI Desktop Controller (featured, ongoing) */}
-              <div
-                className="project-card featured reveal scale-in"
-                style={{ transitionDelay: "0.05s" }}
-              >
-                <div className="project-image">
-                  <img
-                    loading="lazy"
-                    decoding="async"
-                    width={640}
-                    height={360}
-                    src="./imgs/code.jpg"
-                    alt="Companion Agentic AI Desktop Controller"
-                  />
-                </div>
-                <div className="project-content">
-                  <div className="project-tags">
-                    <span>Agentic AI</span>
-                    <span>MCP</span>
-                    <span>OpenRouter</span>
-                    <span>Python</span>
+              {PROJECTS.map((p, i) => (
+                <article
+                  key={p.title}
+                  className={`project-card reveal scale-in${
+                    p.featured ? " featured" : ""
+                  }${p.wide ? " wide" : ""}`}
+                  style={
+                    {
+                      transitionDelay: `${0.05 + i * 0.05}s`,
+                      "--hue": p.hue,
+                    } as React.CSSProperties
+                  }
+                >
+                  <span className="project-index" aria-hidden="true">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <div className="project-content">
+                    {p.badge && (
+                      <span className="project-badge">{p.badge}</span>
+                    )}
+                    <div className="project-tags">
+                      {p.tags.map((tag) => (
+                        <span key={tag}>{tag}</span>
+                      ))}
+                    </div>
+                    <h3>{p.title}</h3>
+                    <p>{p.desc}</p>
+                    {p.href && (
+                      <a
+                        href={p.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="project-github"
+                      >
+                        View on GitHub →
+                      </a>
+                    )}
                   </div>
-                  <h3>Companion — Agentic AI Desktop Controller</h3>
-                  <p>
-                    AI agent application built on the Model Context Protocol
-                    (MCP). Lets AI agents control the browser, access the local
-                    file system, manage Gmail, and execute multi-application
-                    workflows. Supports any LLM via OpenRouter integration.
-                    Currently in active development at BlackCode.
-                  </p>
-                </div>
-              </div>
-
-              {/* Wathifa */}
-              <div
-                className="project-card reveal scale-in"
-                style={{ transitionDelay: "0.1s" }}
-              >
-                <div className="project-image">
-                  <img
-                    loading="lazy"
-                    decoding="async"
-                    width={640}
-                    height={360}
-                    src="./imgs/code.jpg"
-                    alt="Wathifa Job Matching Platform"
-                  />
-                </div>
-                <div className="project-content">
-                  <div className="project-tags">
-                    <span>Full-Stack</span>
-                    <span>Stripe API</span>
-                    <span>AWS</span>
-                  </div>
-                  <h3>Wathifa - Job Matching Platform</h3>
-                  <p>
-                    Comprehensive job-matching platform connecting international
-                    job seekers with MENA region employers. Features automated
-                    readiness scoring (65% threshold), one-way messaging,
-                    employer dashboard with advanced filtering, secure Stripe
-                    payment processing, and AWS cloud storage for resume
-                    management.
-                  </p>
-                </div>
-              </div>
-
-              {/* AI Resume Analyzer */}
-              <div
-                className="project-card reveal scale-in"
-                style={{ transitionDelay: "0.1s" }}
-              >
-                <div className="project-image">
-                  <img
-                    loading="lazy"
-                    decoding="async"
-                    width={640}
-                    height={360}
-                    src="./imgs/code.jpg"
-                    alt="AI Resume Analyzer"
-                  />
-                  <div className="project-overlay">
-                    <a
-                      href="https://github.com/AhmedDlshad007/AI-Resume-Analyzer"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="project-link"
-                    >
-                      <ProjectLinkSvg />
-                    </a>
-                  </div>
-                </div>
-                <div className="project-content">
-                  <div className="project-tags">
-                    <span>Flask</span>
-                    <span>OpenAI</span>
-                    <span>Python</span>
-                  </div>
-                  <h3>AI-Powered Resume Analyzer</h3>
-                  <p>
-                    Web application that analyzes resumes against job
-                    descriptions using OpenAI GPT-3.5-turbo. Extracts text from
-                    PDFs/TXT files, calculates match percentages, identifies
-                    missing keywords, and provides tailored improvement
-                    suggestions.
-                  </p>
-                  <a
-                    href="https://github.com/AhmedDlshad007/AI-Resume-Analyzer"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="project-github"
-                  >
-                    View on GitHub →
-                  </a>
-                </div>
-              </div>
-
-              {/* SleepyClock */}
-              <div
-                className="project-card reveal scale-in"
-                style={{ transitionDelay: "0.2s" }}
-              >
-                <div className="project-image">
-                  <img
-                    loading="lazy"
-                    decoding="async"
-                    width={640}
-                    height={360}
-                    src="./imgs/code.jpg"
-                    alt="SleepyClock"
-                  />
-                  <div className="project-overlay">
-                    <a
-                      href="https://github.com/AhmedDlshad007/SleepyClock"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="project-link"
-                    >
-                      <ProjectLinkSvg />
-                    </a>
-                  </div>
-                </div>
-                <div className="project-content">
-                  <div className="project-tags">
-                    <span>HTML5</span>
-                    <span>CSS3</span>
-                    <span>JavaScript</span>
-                  </div>
-                  <h3>SleepyClock</h3>
-                  <p>
-                    Sleep cycle calculator to help optimize sleep schedules!
-                    Features smart sleep calculations, fully responsive design,
-                    dark/light mode toggle, and mobile-first approach. Built with
-                    pure vanilla JavaScript - sometimes the fundamentals are all
-                    you need!
-                  </p>
-                  <a
-                    href="https://github.com/AhmedDlshad007/SleepyClock"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="project-github"
-                  >
-                    View on GitHub →
-                  </a>
-                </div>
-              </div>
-
-              {/* RAG Agent */}
-              <div
-                className="project-card reveal scale-in"
-                style={{ transitionDelay: "0.3s" }}
-              >
-                <div className="project-image">
-                  <img
-                    loading="lazy"
-                    decoding="async"
-                    width={640}
-                    height={360}
-                    src="./imgs/code.jpg"
-                    alt="RAG Agent Project"
-                  />
-                  <div className="project-overlay">
-                    <a
-                      href="https://github.com/AhmedDlshad007/rag_agent_project.git"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="project-link"
-                    >
-                      <ProjectLinkSvg />
-                    </a>
-                  </div>
-                </div>
-                <div className="project-content">
-                  <div className="project-tags">
-                    <span>Python</span>
-                    <span>Tkinter</span>
-                    <span>RAG</span>
-                  </div>
-                  <h3>Movie Research Assistant (RAG Agent)</h3>
-                  <p>
-                    Python-based Retrieval Augmented Generation agent for
-                    researching movies and TV shows. Integrates with TMDb, OMDb,
-                    and YouTube APIs to fetch comprehensive movie details,
-                    ratings, release dates, and trailers.
-                  </p>
-                  <a
-                    href="https://github.com/AhmedDlshad007/rag_agent_project.git"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="project-github"
-                  >
-                    View on GitHub →
-                  </a>
-                </div>
-              </div>
-
-              {/* Anime Character Generator */}
-              <div
-                className="project-card reveal scale-in"
-                style={{ transitionDelay: "0.4s" }}
-              >
-                <div className="project-image">
-                  <img
-                    loading="lazy"
-                    decoding="async"
-                    width={640}
-                    height={360}
-                    src="./imgs/code.jpg"
-                    alt="Anime Character Generator"
-                  />
-                  <div className="project-overlay">
-                    <a
-                      href="https://github.com/AhmedDlshad007/Anime-Character-Generator.git"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="project-link"
-                    >
-                      <ProjectLinkSvg />
-                    </a>
-                  </div>
-                </div>
-                <div className="project-content">
-                  <div className="project-tags">
-                    <span>Next.js</span>
-                    <span>Stable Diffusion</span>
-                    <span>AI</span>
-                  </div>
-                  <h3>Anime Character Generator</h3>
-                  <p>
-                    Web application that generates anime characters from text
-                    prompts using Stable Diffusion XL via Replicate API. Features
-                    a clean, responsive interface built with Next.js and Tailwind
-                    CSS, allowing users to create unique character artwork in
-                    seconds.
-                  </p>
-                  <a
-                    href="https://github.com/AhmedDlshad007/Anime-Character-Generator.git"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="project-github"
-                  >
-                    View on GitHub →
-                  </a>
-                </div>
-              </div>
-
-              {/* AI Image Captioning */}
-              <div
-                className="project-card reveal scale-in"
-                style={{ transitionDelay: "0.5s" }}
-              >
-                <div className="project-image">
-                  <img
-                    loading="lazy"
-                    decoding="async"
-                    width={640}
-                    height={360}
-                    src="./imgs/code.jpg"
-                    alt="AI Captioning and Tagging"
-                  />
-                  <div className="project-overlay">
-                    <a
-                      href="https://github.com/AhmedDlshad007/AI-Image-Captioning"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="project-link"
-                    >
-                      <ProjectLinkSvg />
-                    </a>
-                  </div>
-                </div>
-                <div className="project-content">
-                  <div className="project-tags">
-                    <span>React</span>
-                    <span>TypeScript</span>
-                    <span>Hugging Face</span>
-                  </div>
-                  <h3>AI Image Captioning &amp; Tagging Tool</h3>
-                  <p>
-                    Automatically generates captions and tags for uploaded images
-                    using Hugging Face&apos;s BLIP model for real-time captioning
-                    and ResNet-50 for image tagging. Features responsive
-                    drag-and-drop interface built with React and Vite.
-                  </p>
-                  <a
-                    href="https://github.com/AhmedDlshad007/AI-Image-Captioning"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="project-github"
-                  >
-                    View on GitHub →
-                  </a>
-                </div>
-              </div>
+                </article>
+              ))}
             </div>
           </div>
         </section>
