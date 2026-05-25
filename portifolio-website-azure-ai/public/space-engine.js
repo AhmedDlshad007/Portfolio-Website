@@ -116,6 +116,11 @@ const PALETTES = {
     { r:35, g:28, b:95 }, { r:8,  g:12, b:45  },
     { r:55, g:30, b:110 },{ r:6,  g:8,  b:35  },
   ],
+  'teal': [
+    { r:13, g:148, b:136 }, { r:20, g:184, b:166 },
+    { r:15, g:118, b:110 }, { r:8,  g:80,  b:78  },
+    { r:45, g:200, b:180 }, { r:6,  g:55,  b:55  },
+  ],
 };
 
 /* ══════════════════════════════════════════════
@@ -185,7 +190,7 @@ function pickSpectralIndex() {
 ══════════════════════════════════════════════ */
 let deepField = [];
 function initDeepField() {
-  const N = 4000;
+  const N = cfg.deepFieldCount || 4000;
   deepField = Array.from({ length: N }, () => ({
     x: Math.random(), y: Math.random(),
     alpha: 0.06 + Math.random() * 0.2,
@@ -365,6 +370,19 @@ function spawnWarpPulse(alpha, speed) {
 let warpVel = 0;
 let warpFlight = 0;
 
+/* Per-section accent tint (lerped each frame) — drives the ambience hue. */
+const ACCENTS = {
+  purple: { r: 26, g: 10, b: 52 },
+  blue:   { r: 14, g: 26, b: 74 },
+  teal:   { r: 8,  g: 48, b: 50 },
+};
+let tint = { ...ACCENTS.purple };
+let tintTarget = { ...ACCENTS.purple };
+
+/* Pre-rendered star-glow sprites (one per spectral type) + cached vignette. */
+let starGlowSprites = [];
+let vignetteCanvas = null;
+
 /* ══════════════════════════════════════════════
    MOUSE TRAIL
 ══════════════════════════════════════════════ */
@@ -472,6 +490,38 @@ function renderCursorGlow() {
   c.beginPath(); c.arc(128, 128, 128, 0, Math.PI * 2); c.fill();
 }
 
+/* Pre-render one radial glow sprite per spectral type (full alpha). Drawn with
+   globalAlpha per star instead of allocating a gradient every frame. */
+function buildStarGlowSprites() {
+  starGlowSprites = SPECTRAL.map((spec) => {
+    const c = document.createElement('canvas');
+    c.width = 64; c.height = 64;
+    const g = c.getContext('2d');
+    const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    grad.addColorStop(0,   `rgba(${spec.r},${spec.g},${spec.b},1)`);
+    grad.addColorStop(0.4, `rgba(${spec.r},${spec.g},${spec.b},0.3)`);
+    grad.addColorStop(1,   `rgba(${spec.r},${spec.g},${spec.b},0)`);
+    g.fillStyle = grad; g.fillRect(0, 0, 64, 64);
+    return c;
+  });
+}
+
+/* The vignette + top gradient are static (depend only on W/H) — bake them once. */
+function buildVignetteCanvas() {
+  vignetteCanvas = document.createElement('canvas');
+  vignetteCanvas.width = W; vignetteCanvas.height = H;
+  const vc = vignetteCanvas.getContext('2d');
+  const g = vc.createRadialGradient(W*0.5,H*0.44,Math.min(W,H)*0.2,W*0.5,H*0.44,Math.max(W,H)*0.95);
+  g.addColorStop(0,   'rgba(0,0,0,0)');
+  g.addColorStop(0.5, 'rgba(0,0,0,0.05)');
+  g.addColorStop(0.8, 'rgba(0,0,0,0.2)');
+  g.addColorStop(1,   'rgba(0,0,0,0.55)');
+  vc.fillStyle = g; vc.fillRect(0,0,W,H);
+  const tg = vc.createLinearGradient(0,0,0,60);
+  tg.addColorStop(0,'rgba(0,0,0,0.25)'); tg.addColorStop(1,'rgba(0,0,0,0)');
+  vc.fillStyle = tg; vc.fillRect(0,0,W,90);
+}
+
 function renderNebulaOffscreen(t) {
   const oc = nebulaCtx;
   const scale = 0.25; // 1/4 resolution
@@ -571,6 +621,7 @@ function resize() {
   initStars(cfg.starCount || 3000);
   initDeepField();
   createOffscreenCanvases();
+  buildVignetteCanvas();
   offscreenFrameCount = 0;
   cachedScrollHeight = document.body.scrollHeight;
 }
@@ -657,6 +708,14 @@ function drawFrame(timestamp) {
   if (warpVel < 0.0008) warpVel = 0;
   warpFlight += warpVel * dt;
 
+  /* Accent tint lerp (per-section color shift) — ~1s ease toward target */
+  {
+    const k = 1 - Math.pow(0.05, dt);
+    tint.r += (tintTarget.r - tint.r) * k;
+    tint.g += (tintTarget.g - tint.g) * k;
+    tint.b += (tintTarget.b - tint.b) * k;
+  }
+
   /* Micro-flash events — very rare */
   if (flashAccum > 1.3 + Math.random() * 3.3) {
     flashes.push({ x: Math.random()*W, y: Math.random()*H, alpha: 0.4+Math.random()*0.5, r: 2+Math.random()*4, decay: 2.4+Math.random()*1.8 });
@@ -687,13 +746,14 @@ function drawFrame(timestamp) {
   ctx.fillStyle = '#010004';
   ctx.fillRect(0, 0, W, H);
 
-  /* Deep indigo center ambience */
+  /* Center ambience — tinted by the current per-section accent */
   {
     const cx = W*0.5, cy = H*0.42, r = Math.max(W,H)*0.95;
+    const tr = tint.r | 0, tg = tint.g | 0, tb = tint.b | 0;
     const g = ctx.createRadialGradient(cx,cy,0,cx,cy,r);
-    g.addColorStop(0,   'rgba(8,3,22,0.5)');
-    g.addColorStop(0.35,'rgba(4,1,14,0.28)');
-    g.addColorStop(1,   'rgba(0,0,0,0)');
+    g.addColorStop(0,    `rgba(${tr},${tg},${tb},0.55)`);
+    g.addColorStop(0.35, `rgba(${(tr*0.55)|0},${(tg*0.55)|0},${(tb*0.55)|0},0.30)`);
+    g.addColorStop(1,    'rgba(0,0,0,0)');
     ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
   }
 
@@ -906,18 +966,8 @@ function drawFrame(timestamp) {
     ctx.restore();
   }
 
-  /* ═══ LAYER 18: Vignette ═══ */
-  {
-    const g=ctx.createRadialGradient(W*0.5,H*0.44,Math.min(W,H)*0.2,W*0.5,H*0.44,Math.max(W,H)*0.95);
-    g.addColorStop(0,   'rgba(0,0,0,0)');
-    g.addColorStop(0.5, 'rgba(0,0,0,0.05)');
-    g.addColorStop(0.8, 'rgba(0,0,0,0.2)');
-    g.addColorStop(1,   'rgba(0,0,0,0.55)');
-    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-    const tg=ctx.createLinearGradient(0,0,0,60);
-    tg.addColorStop(0,'rgba(0,0,0,0.25)'); tg.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=tg; ctx.fillRect(0,0,W,90);
-  }
+  /* ═══ LAYER 18: Vignette (pre-baked, drawn once per frame) ═══ */
+  if (vignetteCanvas) ctx.drawImage(vignetteCanvas, 0, 0);
 
   /* Grid overlay (on top of everything else) */
   if (cfg.gridLines) {
@@ -969,16 +1019,31 @@ function drawStars(layerArray, alphaMult) {
     // Size scales with perspective — close stars bigger, far stars smaller
     const r = s.r * (0.4 + perspective * 0.15);
 
-    /* Glow halo for brighter stars — colored stars get bigger, brighter halos */
-    if (s.baseAlpha > 0.52 && r > 0.8) {
+    /* Glow halo for brighter stars — pre-rendered sprite, tinted alpha */
+    if (s.baseAlpha > 0.52 && r > 0.8 && starGlowSprites.length) {
       const isColored = s.specIdx === 0 || s.specIdx === 1 || s.specIdx === 4 || s.specIdx === 5;
       const glowR = r * (isColored ? 3.8 : 2.5);
       const glowA = a * (isColored ? 0.55 : 0.35);
-      const g = ctx.createRadialGradient(px,py,0,px,py,glowR);
-      g.addColorStop(0,   colorAtAlpha(s.specIdx, glowA));
-      g.addColorStop(0.4, colorAtAlpha(s.specIdx, glowA * 0.3));
-      g.addColorStop(1,   colorAtAlpha(s.specIdx, 0));
-      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(px,py,glowR,0,Math.PI*2); ctx.fill();
+      ctx.globalAlpha = glowA;
+      ctx.drawImage(starGlowSprites[s.specIdx], px - glowR, py - glowR, glowR * 2, glowR * 2);
+      ctx.globalAlpha = 1;
+    }
+
+    /* Warp streak — during a section-jump surge, stars rush outward as radial
+       lines (length ∝ speed × distance from centre, capped). Visual-only, so
+       it never produces the position-warp "vortex". */
+    if (cfg.warpEffect && warpVel > 0.06) {
+      const dxc = px - W * 0.5, dyc = py - H * 0.5;
+      const dist = Math.sqrt(dxc * dxc + dyc * dyc) || 1;
+      const streak = Math.min(warpVel, 1.2) * dist * 0.12;
+      if (streak > 1.5) {
+        ctx.strokeStyle = colorAtAlpha(s.specIdx, a);
+        ctx.lineWidth = Math.max(0.6, r * 0.9);
+        ctx.beginPath();
+        ctx.moveTo(px, py);
+        ctx.lineTo(px - (dxc / dist) * streak, py - (dyc / dist) * streak);
+        ctx.stroke();
+      }
     }
 
     /* Star body */
@@ -1035,6 +1100,15 @@ window.addEventListener('mousemove', e => {
   targetMouse.x = e.clientX / W;
   targetMouse.y = e.clientY / H;
 });
+/* Touch parallax — bring the reactive scene to phones/tablets */
+function handleTouch(e) {
+  if (e.touches && e.touches.length) {
+    targetMouse.x = e.touches[0].clientX / W;
+    targetMouse.y = e.touches[0].clientY / H;
+  }
+}
+window.addEventListener('touchstart', handleTouch, { passive: true });
+window.addEventListener('touchmove', handleTouch, { passive: true });
 window.addEventListener('scroll', () => { scroll = window.scrollY; cachedScrollHeight = document.body.scrollHeight; }, { passive: true });
 window.addEventListener('resize', resize);
 
@@ -1044,6 +1118,9 @@ window.addEventListener('resize', resize);
 window.bootSpace = function(defaults) {
   cfg = { ...defaults };
   initSpectralLUT();
+  buildStarGlowSprites();
+  tint = { ...ACCENTS.purple };
+  tintTarget = { ...ACCENTS.purple };
   initPalLUT(cfg.colorMode || 'deep-space');
   // Pre-build LUTs for all palettes
   Object.keys(PALETTES).forEach(k => initPalLUT(k));
@@ -1087,4 +1164,16 @@ window.warpBurst = function(intensity) {
   warpVel += 0.95 * k;
   spawnWarpPulse(0.11 * k, 0.85 + Math.random() * 0.4);
   spawnWarpPulse(0.06 * k, 0.6 + Math.random() * 0.35);
+};
+
+/* Shift the background accent per section: 'purple' | 'blue' | 'teal'.
+   Lerps the ambience hue and swaps the nebula palette. */
+window.setSpaceAccent = function(key) {
+  const a = ACCENTS[key] || ACCENTS.purple;
+  tintTarget = { r: a.r, g: a.g, b: a.b };
+  const mode = key === 'blue' ? 'blue-indigo' : key === 'teal' ? 'teal' : 'deep-space';
+  if (mode !== cfg.colorMode) {
+    initPalLUT(mode);
+    cfg.colorMode = mode;
+  }
 };

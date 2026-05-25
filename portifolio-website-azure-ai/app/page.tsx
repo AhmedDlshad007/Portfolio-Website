@@ -10,6 +10,7 @@ declare global {
     updateSpaceCfg: (cfg: Record<string, unknown>) => void;
     stopSpace: () => void;
     warpBurst: (intensity?: number) => void;
+    setSpaceAccent: (key: string) => void;
   }
 }
 
@@ -377,6 +378,12 @@ export default function Home() {
       typeof window !== "undefined" &&
       window.matchMedia &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // Lighten the simulation on phones/low-power touch devices.
+    const isMobile =
+      typeof window !== "undefined" &&
+      window.matchMedia &&
+      (window.matchMedia("(max-width: 768px)").matches ||
+        window.matchMedia("(pointer: coarse)").matches);
     let freezeTimer: ReturnType<typeof setTimeout> | undefined;
     const script = document.createElement("script");
     script.src = "/space-engine.js";
@@ -392,7 +399,8 @@ export default function Home() {
           rippleOnClick: !reduce,
           gridLines: false,
           speed: 50,
-          starCount: 550,
+          starCount: isMobile ? 300 : 550,
+          deepFieldCount: isMobile ? 1400 : 4000,
           showStreaks: !reduce,
           warpEffect: !reduce,
         });
@@ -666,12 +674,32 @@ export default function Home() {
       armed = true;
     }, 1600);
     let lastWarp = 0;
+    let lastAccent = "purple";
+
+    // Map a section to its background accent (mirrors the per-section UI tints).
+    const accentFor = (el: Element) =>
+      el.classList.contains("experience-section")
+        ? "blue"
+        : el.classList.contains("projects-section")
+        ? "teal"
+        : "purple";
 
     const observer = new IntersectionObserver(
       (entries) => {
         if (!armed) return;
+        const visible = entries.filter((e) => e.isIntersecting);
+        if (!visible.length) return;
+        // Dominant section = highest visible ratio.
+        const top = visible.reduce((a, b) =>
+          b.intersectionRatio > a.intersectionRatio ? b : a
+        );
+        const accent = accentFor(top.target);
+        if (accent !== lastAccent) {
+          lastAccent = accent;
+          if (window.setSpaceAccent) window.setSpaceAccent(accent);
+        }
         const now = performance.now();
-        if (entries.some((e) => e.isIntersecting) && now - lastWarp > 900) {
+        if (now - lastWarp > 900) {
           lastWarp = now;
           if (window.warpBurst) window.warpBurst(1);
         }
