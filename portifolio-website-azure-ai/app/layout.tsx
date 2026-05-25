@@ -34,7 +34,9 @@ export const metadata: Metadata = {
     description: DESCRIPTION,
     images: [
       {
-        url: "/imgs/hero-image.png",
+        url: "/imgs/og-card.png",
+        width: 1200,
+        height: 630,
         alt: "Ahmed Dlshad — Full-Stack & Agentic AI Engineer",
       },
     ],
@@ -43,7 +45,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: TITLE,
     description: DESCRIPTION,
-    images: ["/imgs/hero-image.png"],
+    images: ["/imgs/og-card.png"],
   },
 };
 
