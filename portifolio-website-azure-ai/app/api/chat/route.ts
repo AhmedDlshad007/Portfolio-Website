@@ -146,11 +146,12 @@ export async function POST(request: Request) {
         ],
         max_tokens: 350,
         temperature: 0.7,
+        stream: true,
       }),
     });
 
-    if (!res.ok) {
-      const detail = await res.text();
+    if (!res.ok || !res.body) {
+      const detail = await res.text().catch(() => "");
       console.error("OpenRouter request failed:", res.status, detail);
       return NextResponse.json(
         { error: "The assistant is temporarily unavailable." },
@@ -158,11 +159,58 @@ export async function POST(request: Request) {
       );
     }
 
-    const data = await res.json();
-    const message =
-      data?.choices?.[0]?.message?.content ||
-      "Sorry, I could not process your request.";
-    return NextResponse.json({ message });
+    /* Transform OpenRouter's SSE into a plain-text token stream so the client
+       can just read text and append — no SSE parsing needed in the browser. */
+    const upstream = res.body;
+    const decoder = new TextDecoder();
+    const encoder = new TextEncoder();
+
+    const stream = new ReadableStream({
+      async start(controller) {
+        const reader = upstream.getReader();
+        let buffer = "";
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop() ?? ""; // keep the trailing partial line
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (!trimmed.startsWith("data:")) continue; // skip SSE keep-alive comments
+              const data = trimmed.slice(5).trim();
+              if (data === "[DONE]") {
+                controller.close();
+                return;
+              }
+              try {
+                const json = JSON.parse(data);
+                const delta = json?.choices?.[0]?.delta?.content;
+                if (typeof delta === "string" && delta) {
+                  controller.enqueue(encoder.encode(delta));
+                }
+              } catch {
+                /* ignore partial/non-JSON lines */
+              }
+            }
+          }
+          controller.close();
+        } catch (err) {
+          controller.error(err);
+        } finally {
+          reader.releaseLock();
+        }
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "no-cache, no-transform",
+        "X-Accel-Buffering": "no",
+      },
+    });
   } catch (error) {
     console.error("Error calling chat provider:", error);
     return NextResponse.json(

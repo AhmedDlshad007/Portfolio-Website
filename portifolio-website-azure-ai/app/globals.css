@@ -614,6 +614,18 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
 .message.user .message-content { background: var(--gradient-purple); border: none; }
 .message-content p { color: var(--gray-200); margin: 0; font-size: 14px; line-height: 1.6; }
 .message.user .message-content p { color: var(--white); }
+/* Markdown inside assistant replies */
+.message-content > * + * { margin-top: 8px; }
+.message-content ul, .message-content ol { margin: 0; padding-left: 18px; }
+.message-content li { color: var(--gray-200); font-size: 14px; line-height: 1.6; margin: 2px 0; }
+.message.user .message-content li { color: var(--white); }
+.message-content strong { font-weight: 700; color: var(--white); }
+.message-content .md-heading { font-weight: 700; color: var(--white); font-size: 14.5px; }
+.message-content code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12.5px; background: rgba(147,51,234,0.18);
+  padding: 1px 5px; border-radius: 5px;
+}
 .typing-indicator { display: flex; gap: 5px; align-items: center; padding: 4px 0; }
 .typing-dot { width: 7px; height: 7px; background: var(--purple-300); border-radius: 50%; animation: typing 1.2s ease-in-out infinite; }
 .typing-dot:nth-child(2) { animation-delay: 0.2s; }

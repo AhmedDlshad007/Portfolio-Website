@@ -55,6 +55,92 @@ function ProjectLinkSvg() {
   );
 }
 
+/* ────────────────────────────────────────────
+   Lightweight markdown for assistant replies
+   (paragraphs, -/* and numbered lists, **bold**, `code`).
+   Builds React nodes (never dangerouslySetInnerHTML) so model
+   output can't inject markup. Tolerant of mid-stream partials.
+──────────────────────────────────────────── */
+function parseInline(text: string): React.ReactNode[] {
+  const nodes: React.ReactNode[] = [];
+  const regex = /(\*\*([^*]+)\*\*|`([^`]+)`)/g;
+  let lastIndex = 0;
+  let key = 0;
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) nodes.push(text.slice(lastIndex, match.index));
+    if (match[2] !== undefined) nodes.push(<strong key={key++}>{match[2]}</strong>);
+    else if (match[3] !== undefined) nodes.push(<code key={key++}>{match[3]}</code>);
+    lastIndex = regex.lastIndex;
+  }
+  if (lastIndex < text.length) nodes.push(text.slice(lastIndex));
+  return nodes;
+}
+
+type MdBlock =
+  | { type: "p"; text: string }
+  | { type: "h"; text: string }
+  | { type: "ul"; items: string[] }
+  | { type: "ol"; items: string[] };
+
+function formatMessage(content: string): React.ReactNode {
+  const blocks: MdBlock[] = [];
+  let para: string[] = [];
+  let listItems: string[] = [];
+  let listOrdered = false;
+
+  const flushPara = () => {
+    if (para.length) { blocks.push({ type: "p", text: para.join(" ") }); para = []; }
+  };
+  const flushList = () => {
+    if (listItems.length) {
+      blocks.push(
+        listOrdered
+          ? { type: "ol", items: listItems }
+          : { type: "ul", items: listItems }
+      );
+      listItems = [];
+    }
+  };
+
+  for (const raw of content.split("\n")) {
+    const line = raw.trim();
+    const heading = line.match(/^#{1,6}\s+(.*)$/);
+    const bullet = line.match(/^([-*]|\d+\.)\s+(.*)$/);
+    if (heading) {
+      flushPara();
+      flushList();
+      blocks.push({ type: "h", text: heading[1] });
+    } else if (bullet) {
+      flushPara();
+      const ordered = /\d/.test(bullet[1]);
+      if (listItems.length && ordered !== listOrdered) flushList();
+      listOrdered = ordered;
+      listItems.push(bullet[2]);
+    } else if (line === "") {
+      flushPara();
+      flushList();
+    } else {
+      flushList();
+      para.push(line);
+    }
+  }
+  flushPara();
+  flushList();
+
+  return blocks.map((b, i) =>
+    b.type === "h" ? (
+      <p key={i} className="md-heading">{parseInline(b.text)}</p>
+    ) : b.type === "p" ? (
+      <p key={i}>{parseInline(b.text)}</p>
+    ) : b.type === "ol" ? (
+      <ol key={i}>{b.items.map((it, j) => <li key={j}>{parseInline(it)}</li>)}</ol>
+    ) : (
+      <ul key={i}>{b.items.map((it, j) => <li key={j}>{parseInline(it)}</li>)}</ul>
+    )
+  );
+}
+
 /* ════════════════════════════════════════════
    MAIN COMPONENT
 ════════════════════════════════════════════ */
@@ -114,27 +200,58 @@ export default function Home() {
     setMessageInput("");
     setIsLoading(true);
 
+    const apiMessages = newMessages.map((msg) => ({
+      role: msg.role === "assistant" ? "assistant" : "user",
+      content: msg.content,
+    }));
+    const assistantId = `assistant-${Date.now()}`;
+
     try {
       const response = await fetch("/api/chat/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: newMessages.map((msg) => ({
-            role: msg.role === "assistant" ? "assistant" : "user",
-            content: msg.content,
-          })),
-        }),
+        body: JSON.stringify({ messages: apiMessages }),
       });
 
-      const data = await response.json();
-      const message =
-        data.message || "Sorry, I could not process your request.";
-      setMessages([
-        ...newMessages,
-        { id: `assistant-${Date.now()}`, role: "assistant", content: message },
-      ]);
+      const contentType = response.headers.get("content-type") || "";
+      if (!response.ok || !response.body || contentType.includes("application/json")) {
+        throw new Error("Chat request failed");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let acc = "";
+      let started = false;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        if (!chunk) continue;
+        acc += chunk;
+        if (!started) {
+          started = true;
+          setIsLoading(false); // first token arrived — swap dots for the reply
+        }
+        setMessages([
+          ...newMessages,
+          { id: assistantId, role: "assistant", content: acc },
+        ]);
+      }
+
+      if (!started) {
+        setIsLoading(false);
+        setMessages([
+          ...newMessages,
+          {
+            id: assistantId,
+            role: "assistant",
+            content: "Sorry, I could not process your request.",
+          },
+        ]);
+      }
     } catch (error) {
       console.error("Error calling chat API:", error);
+      setIsLoading(false);
       setMessages([
         ...newMessages,
         {
@@ -144,8 +261,6 @@ export default function Home() {
             "Sorry, there was an error processing your request. Please try again later.",
         },
       ]);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -168,27 +283,58 @@ export default function Home() {
     setFloatMessageInput("");
     setFloatLoading(true);
 
+    const apiMessages = newMessages.map((msg) => ({
+      role: msg.role === "assistant" ? "assistant" : "user",
+      content: msg.content,
+    }));
+    const assistantId = `fassistant-${Date.now()}`;
+
     try {
       const response = await fetch("/api/chat/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: newMessages.map((msg) => ({
-            role: msg.role === "assistant" ? "assistant" : "user",
-            content: msg.content,
-          })),
-        }),
+        body: JSON.stringify({ messages: apiMessages }),
       });
 
-      const data = await response.json();
-      const message =
-        data.message || "Sorry, I could not process your request.";
-      setFloatMessages([
-        ...newMessages,
-        { id: `fassistant-${Date.now()}`, role: "assistant", content: message },
-      ]);
+      const contentType = response.headers.get("content-type") || "";
+      if (!response.ok || !response.body || contentType.includes("application/json")) {
+        throw new Error("Chat request failed");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let acc = "";
+      let started = false;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        if (!chunk) continue;
+        acc += chunk;
+        if (!started) {
+          started = true;
+          setFloatLoading(false);
+        }
+        setFloatMessages([
+          ...newMessages,
+          { id: assistantId, role: "assistant", content: acc },
+        ]);
+      }
+
+      if (!started) {
+        setFloatLoading(false);
+        setFloatMessages([
+          ...newMessages,
+          {
+            id: assistantId,
+            role: "assistant",
+            content: "Sorry, I could not process your request.",
+          },
+        ]);
+      }
     } catch (error) {
       console.error("Error calling chat API:", error);
+      setFloatLoading(false);
       setFloatMessages([
         ...newMessages,
         {
@@ -198,8 +344,6 @@ export default function Home() {
             "Sorry, there was an error processing your request. Please try again later.",
         },
       ]);
-    } finally {
-      setFloatLoading(false);
     }
   };
 
@@ -602,7 +746,7 @@ export default function Home() {
         )}
       </div>
       <div className="message-content">
-        <p>{msg.content}</p>
+        {msg.role === "assistant" ? formatMessage(msg.content) : <p>{msg.content}</p>}
       </div>
     </div>
   );
@@ -1902,7 +2046,11 @@ export default function Home() {
                 )}
               </div>
               <div className="message-content">
-                <p>{msg.content}</p>
+                {msg.role === "assistant" ? (
+                  formatMessage(msg.content)
+                ) : (
+                  <p>{msg.content}</p>
+                )}
               </div>
             </div>
           ))}
