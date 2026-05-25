@@ -499,43 +499,45 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
 .timeline-list li { padding-left: 24px; margin-bottom: 10px; color: var(--gray-400); position: relative; }
 .timeline-list li::before { content: '→'; position: absolute; left: 0; color: var(--purple-400); font-weight: 700; }
 
-/* ── Projects — "Aurora Bento": translucent glass tiles over the starfield ── */
+/* ── Projects — glowing glass panels over the starfield ── */
 .projects-section { background: transparent; }
 .projects-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  grid-auto-rows: minmax(190px, auto);
-  gap: 20px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
 }
 .project-card {
-  grid-column: span 2;
   position: relative;
+  display: flex;
   overflow: hidden;
+  min-height: 210px;
   border-radius: 22px;
-  border: 1px solid rgba(20,184,166,0.14);
-  background: rgba(4,18,16,0.30);
-  backdrop-filter: blur(16px) saturate(120%);
+  border: 1px solid rgba(45,212,191,0.20);
+  background: rgba(6,22,20,0.22);
+  backdrop-filter: blur(14px) saturate(125%);
   transition: transform 0.4s cubic-bezier(0.23,1,0.32,1), border-color 0.3s ease, box-shadow 0.3s ease;
 }
-.project-card.featured { grid-column: span 4; grid-row: span 2; }
-.project-card.wide { grid-column: span 6; }
+/* Featured = full-width horizontal hero (text left, glow right) — no void */
+.project-card.featured { grid-column: 1 / -1; min-height: 300px; }
 
-/* Drifting aurora behind the glass, clipped to the rounded card */
+/* Glow behind the glass, clipped to the rounded card */
 .project-card::before {
   content: '';
-  position: absolute; inset: -40%;
+  position: absolute; inset: -35%;
   z-index: 0; pointer-events: none;
   background:
-    radial-gradient(50% 50% at 28% 30%, hsla(var(--hue,170), 88%, 60%, 0.44), transparent 72%),
-    radial-gradient(54% 54% at 74% 70%, hsla(calc(var(--hue,170) + 34), 90%, 62%, 0.32), transparent 74%);
-  filter: blur(22px);
+    radial-gradient(46% 52% at 22% 22%, hsla(var(--hue,170), 90%, 64%, 0.50), transparent 70%),
+    radial-gradient(50% 56% at 82% 80%, hsla(calc(var(--hue,170) + 32), 92%, 66%, 0.38), transparent 72%);
+  filter: blur(20px);
   animation: aurora-drift 19s ease-in-out infinite alternate;
 }
-/* Faint top sheen for a glass edge */
+/* Glass sheen on top + a soft scrim at the bottom for text legibility */
 .project-card::after {
   content: '';
   position: absolute; inset: 0; z-index: 0; pointer-events: none;
-  background: linear-gradient(180deg, rgba(255,255,255,0.05), transparent 28%);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.06), transparent 26%),
+    linear-gradient(180deg, transparent 48%, rgba(2,10,9,0.30));
 }
 @keyframes aurora-drift {
   0%   { transform: translate3d(-4%, -3%, 0) rotate(0deg)  scale(1); }
@@ -555,20 +557,21 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
   font-size: 46px; font-weight: 800; line-height: 1; letter-spacing: -1px;
   color: rgba(94,234,212,0.16); pointer-events: none;
 }
-.project-card.featured .project-index { font-size: 76px; }
+.project-card.featured .project-index { font-size: 120px; top: 0; right: 32px; }
 
 .project-content {
   position: relative; z-index: 1;
   display: flex; flex-direction: column;
-  height: 100%; padding: 26px;
+  width: 100%; height: 100%; padding: 26px;
 }
-.project-card.featured .project-content { padding: 44px; justify-content: center; }
-/* The featured tile is large — bloom the aurora across it so the upper area
-   isn't an empty void. */
+.project-card.featured .project-content {
+  max-width: 600px; padding: 48px; justify-content: center;
+}
+/* Featured hero: strong glow on the right, where the text doesn't reach */
 .project-card.featured::before {
   background:
-    radial-gradient(72% 64% at 32% 28%, hsla(var(--hue,170), 90%, 62%, 0.46), transparent 72%),
-    radial-gradient(64% 66% at 82% 84%, hsla(calc(var(--hue,170) + 30), 92%, 64%, 0.34), transparent 74%);
+    radial-gradient(40% 82% at 86% 50%, hsla(var(--hue,170), 92%, 66%, 0.54), transparent 72%),
+    radial-gradient(42% 70% at 10% 18%, hsla(calc(var(--hue,170) + 30), 90%, 64%, 0.34), transparent 72%);
 }
 
 .project-badge {
@@ -585,9 +588,9 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
   color: #5eead4; background: rgba(20,184,166,0.15);
 }
 .project-content h3 { font-size: 21px; margin-bottom: 10px; }
-.project-card.featured .project-content h3 { font-size: 34px; max-width: 18ch; }
+.project-card.featured .project-content h3 { font-size: 36px; max-width: 16ch; }
 .project-content p { color: var(--gray-300); margin-bottom: 16px; line-height: 1.7; font-size: 15px; }
-.project-card.featured .project-content p { font-size: 17px; max-width: 62ch; }
+.project-card.featured .project-content p { font-size: 17px; max-width: 50ch; }
 .project-github {
   margin-top: auto; align-self: flex-start;
   display: inline-flex; align-items: center; gap: 6px;
@@ -859,9 +862,8 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
   background: radial-gradient(ellipse 90% 70% at 50% 45%, rgba(6,78,59,0.055) 0%, transparent 68%);
   pointer-events: none; z-index: -1;
 }
-/* Larger tiles read as slightly more transparent → a sense of depth. */
-.projects-section .project-card.featured { background: rgba(4,18,16,0.20); }
-.projects-section .project-card.wide { background: rgba(4,18,16,0.24); }
+/* The hero reads a touch more transparent for depth. */
+.projects-section .project-card.featured { background: rgba(6,22,20,0.16); }
 .projects-section .section-title {
   background: linear-gradient(135deg, #0d9488 0%, #14b8a6 45%, #5eead4 100%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
@@ -875,9 +877,9 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
   .hero-subtitle { font-size: 22px; }
   .section-title { font-size: 40px; }
   .projects-grid { grid-template-columns: repeat(2, 1fr); }
-  .project-card { grid-column: span 1; grid-row: auto; }
-  .project-card.featured, .project-card.wide { grid-column: span 2; grid-row: auto; }
-  .project-card.featured .project-content h3 { font-size: 28px; }
+  .project-card.featured .project-content { max-width: 100%; padding: 36px; }
+  .project-card.featured .project-content h3 { font-size: 30px; }
+  .project-card.featured .project-index { font-size: 88px; }
   .footer-content { grid-template-columns: 1fr; }
   .footer-links { grid-template-columns: repeat(2,1fr); }
 }
@@ -892,9 +894,10 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
   .section-title { font-size: 30px; }
   .stats-grid { grid-template-columns: 1fr; }
   .projects-grid { grid-template-columns: 1fr; }
-  .project-card, .project-card.featured, .project-card.wide { grid-column: span 1; grid-row: auto; }
-  .project-card.featured .project-content { padding: 28px; }
+  .project-card.featured { min-height: auto; }
+  .project-card.featured .project-content { max-width: 100%; padding: 26px; }
   .project-card.featured .project-content h3 { font-size: 24px; }
+  .project-card.featured .project-index { font-size: 64px; }
   #float-chat-panel { width: calc(100vw - 32px); right: 16px; bottom: 100px; }
   #float-chat-btn { bottom: 24px; right: 16px; }
 }

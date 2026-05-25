@@ -102,7 +102,6 @@ const PROJECTS: Project[] = [
     tags: ["React", "TypeScript", "Hugging Face"],
     desc: "Automatically generates captions and tags for uploaded images using Hugging Face's BLIP model for real-time captioning and ResNet-50 for tagging. Responsive drag-and-drop interface built with React and Vite.",
     href: "https://github.com/AhmedDlshad007/AI-Image-Captioning",
-    wide: true,
     hue: 158,
   },
 ];
