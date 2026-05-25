@@ -936,7 +936,9 @@ function drawFrame(timestamp) {
 ══════════════════════════════════════════════ */
 function drawStars(layerArray, alphaMult) {
   const str = (cfg.reactivity || 75) / 100;
-  const scrollDepth = cfg.scrollShift ? scroll * 0.0003 : 0;
+  // warpFlight surges on warpBurst() (section changes) so the main starfield
+  // participates in the jump too — not just clusters/galaxies.
+  const scrollDepth = (cfg.scrollShift ? scroll * 0.0003 : 0) + warpFlight;
 
   for (let i = 0; i < layerArray.length; i++) {
     const s = layerArray[i];

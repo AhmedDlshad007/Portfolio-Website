@@ -30,6 +30,15 @@ const marqueeSpanStyle: React.CSSProperties = {
 };
 
 /* ────────────────────────────────────────────
+   Suggested chat prompts (shown before the first user message)
+──────────────────────────────────────────── */
+const SUGGESTED_PROMPTS = [
+  "Tell me about Companion",
+  "What's his AI experience?",
+  "Is he open to work?",
+];
+
+/* ────────────────────────────────────────────
    Project link SVG (reused across all cards)
 ──────────────────────────────────────────── */
 function ProjectLinkSvg() {
@@ -57,6 +66,8 @@ export default function Home() {
   const [floatMessageInput, setFloatMessageInput] = useState("");
   const [floatOpen, setFloatOpen] = useState(false);
   const [badgeVisible, setBadgeVisible] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [floatLoading, setFloatLoading] = useState(false);
 
   /* ── refs ── */
   const heroNameInnerRef = useRef<HTMLSpanElement>(null);
@@ -92,14 +103,16 @@ export default function Home() {
   /* ══════════════════════════════════════════
      OpenAI submit — INLINE chat (exact original logic)
   ══════════════════════════════════════════ */
-  const submitForm = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const sendInline = async (text: string) => {
+    const content = text.trim();
+    if (!content || isLoading) return;
     const newMessages = [
       ...messages,
-      { id: `user-${Date.now()}`, role: "user", content: messageInput },
+      { id: `user-${Date.now()}`, role: "user", content },
     ];
     setMessages(newMessages);
     setMessageInput("");
+    setIsLoading(true);
 
     try {
       const response = await fetch("/api/chat/", {
@@ -131,20 +144,29 @@ export default function Home() {
             "Sorry, there was an error processing your request. Please try again later.",
         },
       ]);
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const submitForm = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    sendInline(messageInput);
   };
 
   /* ══════════════════════════════════════════
      OpenAI submit — FLOATING chat (parallel state)
   ══════════════════════════════════════════ */
-  const submitFloatForm = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const sendFloat = async (text: string) => {
+    const content = text.trim();
+    if (!content || floatLoading) return;
     const newMessages = [
       ...floatMessages,
-      { id: `fuser-${Date.now()}`, role: "user", content: floatMessageInput },
+      { id: `fuser-${Date.now()}`, role: "user", content },
     ];
     setFloatMessages(newMessages);
     setFloatMessageInput("");
+    setFloatLoading(true);
 
     try {
       const response = await fetch("/api/chat/", {
@@ -176,7 +198,14 @@ export default function Home() {
             "Sorry, there was an error processing your request. Please try again later.",
         },
       ]);
+    } finally {
+      setFloatLoading(false);
     }
+  };
+
+  const submitFloatForm = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    sendFloat(floatMessageInput);
   };
 
   const toggleMobileMenu = () => setMenuOpen(!menuOpen);
@@ -188,13 +217,13 @@ export default function Home() {
     if (inlineScrollRef.current) {
       inlineScrollRef.current.scrollTop = inlineScrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, isLoading]);
 
   useEffect(() => {
     if (floatMessagesRef.current) {
       floatMessagesRef.current.scrollTop = floatMessagesRef.current.scrollHeight;
     }
-  }, [floatMessages]);
+  }, [floatMessages, floatLoading]);
 
   /* ══════════════════════════════════════════
      1) SPACE ENGINE BOOT
@@ -578,6 +607,30 @@ export default function Home() {
     </div>
   );
 
+  /* Typing indicator bubble (shown while awaiting an AI reply) */
+  const typingBubble = (
+    <div className="message assistant">
+      <div className="message-avatar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M9.09 9C9.3251 8.33167 9.78915 7.76811 10.4 7.40913C11.0108 7.05016 11.7289 6.91894 12.4272 7.03871C13.1255 7.15849 13.7588 7.52152 14.2151 8.06353C14.6713 8.60553 14.9211 9.29152 14.92 10C14.92 12 11.92 13 11.92 13M12 17H12.01M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </div>
+      <div className="message-content">
+        <div className="typing-indicator" aria-label="Assistant is typing">
+          <span className="typing-dot"></span>
+          <span className="typing-dot"></span>
+          <span className="typing-dot"></span>
+        </div>
+      </div>
+    </div>
+  );
+
   /* ════════════════════════════════════════════
      JSX
   ════════════════════════════════════════════ */
@@ -806,7 +859,13 @@ export default function Home() {
             >
               <div className="image-wrapper">
                 <div className="glow-effect"></div>
-                <img src="./imgs/me.jpg" alt="Ahmed Dlshad" />
+                <img
+                  src="./imgs/me.jpg"
+                  alt="Ahmed Dlshad"
+                  width={420}
+                  height={420}
+                  fetchPriority="high"
+                />
               </div>
             </div>
           </div>
@@ -1204,14 +1263,13 @@ export default function Home() {
               >
                 <div className="project-image">
                   <img
+                    loading="lazy"
+                    decoding="async"
+                    width={640}
+                    height={360}
                     src="./imgs/code.jpg"
                     alt="Companion Agentic AI Desktop Controller"
                   />
-                  <div className="project-overlay">
-                    <a href="#projects" className="project-link">
-                      <ProjectLinkSvg />
-                    </a>
-                  </div>
                 </div>
                 <div className="project-content">
                   <div className="project-tags">
@@ -1238,14 +1296,13 @@ export default function Home() {
               >
                 <div className="project-image">
                   <img
+                    loading="lazy"
+                    decoding="async"
+                    width={640}
+                    height={360}
                     src="./imgs/code.jpg"
                     alt="Wathifa Job Matching Platform"
                   />
-                  <div className="project-overlay">
-                    <a href="#projects" className="project-link">
-                      <ProjectLinkSvg />
-                    </a>
-                  </div>
                 </div>
                 <div className="project-content">
                   <div className="project-tags">
@@ -1271,7 +1328,14 @@ export default function Home() {
                 style={{ transitionDelay: "0.1s" }}
               >
                 <div className="project-image">
-                  <img src="./imgs/code.jpg" alt="AI Resume Analyzer" />
+                  <img
+                    loading="lazy"
+                    decoding="async"
+                    width={640}
+                    height={360}
+                    src="./imgs/code.jpg"
+                    alt="AI Resume Analyzer"
+                  />
                   <div className="project-overlay">
                     <a
                       href="https://github.com/AhmedDlshad007/AI-Resume-Analyzer"
@@ -1314,7 +1378,14 @@ export default function Home() {
                 style={{ transitionDelay: "0.2s" }}
               >
                 <div className="project-image">
-                  <img src="./imgs/code.jpg" alt="SleepyClock" />
+                  <img
+                    loading="lazy"
+                    decoding="async"
+                    width={640}
+                    height={360}
+                    src="./imgs/code.jpg"
+                    alt="SleepyClock"
+                  />
                   <div className="project-overlay">
                     <a
                       href="https://github.com/AhmedDlshad007/SleepyClock"
@@ -1357,7 +1428,14 @@ export default function Home() {
                 style={{ transitionDelay: "0.3s" }}
               >
                 <div className="project-image">
-                  <img src="./imgs/code.jpg" alt="RAG Agent Project" />
+                  <img
+                    loading="lazy"
+                    decoding="async"
+                    width={640}
+                    height={360}
+                    src="./imgs/code.jpg"
+                    alt="RAG Agent Project"
+                  />
                   <div className="project-overlay">
                     <a
                       href="https://github.com/AhmedDlshad007/rag_agent_project.git"
@@ -1400,6 +1478,10 @@ export default function Home() {
               >
                 <div className="project-image">
                   <img
+                    loading="lazy"
+                    decoding="async"
+                    width={640}
+                    height={360}
                     src="./imgs/code.jpg"
                     alt="Anime Character Generator"
                   />
@@ -1446,6 +1528,10 @@ export default function Home() {
               >
                 <div className="project-image">
                   <img
+                    loading="lazy"
+                    decoding="async"
+                    width={640}
+                    height={360}
                     src="./imgs/code.jpg"
                     alt="AI Captioning and Tagging"
                   />
@@ -1609,21 +1695,44 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="chat-messages">
-                  <div className="messages-scroll" ref={inlineScrollRef}>
+                  <div
+                    className="messages-scroll"
+                    ref={inlineScrollRef}
+                    role="log"
+                    aria-live="polite"
+                    aria-atomic="false"
+                  >
                     {messages.map(renderMessage)}
+                    {isLoading && typingBubble}
                   </div>
                 </div>
+                {messages.length <= 1 && !isLoading && (
+                  <div className="prompt-chips">
+                    {SUGGESTED_PROMPTS.map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        className="prompt-chip"
+                        onClick={() => sendInline(p)}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <form onSubmit={submitForm} className="chat-input-form">
                   <input
                     type="text"
                     placeholder="Ask me about Ahmed's skills, experience, or projects..."
                     value={messageInput}
                     onChange={(e) => setMessageInput(e.target.value)}
+                    disabled={isLoading}
                   />
                   <button
                     type="submit"
                     className="send-button"
                     aria-label="Send message"
+                    disabled={isLoading}
                   >
                     <svg
                       width="20"
@@ -1691,7 +1800,7 @@ export default function Home() {
               </div>
             </div>
             <div className="footer-bottom">
-              <p>&copy; 2025 Ahmed Dlshad. All rights reserved.</p>
+              <p>&copy; {new Date().getFullYear()} Ahmed Dlshad. All rights reserved.</p>
               <p>Built with Next.js &amp; ❤️</p>
             </div>
           </div>
@@ -1743,7 +1852,13 @@ export default function Home() {
             ✕
           </button>
         </div>
-        <div className="float-chat-messages" ref={floatMessagesRef}>
+        <div
+          className="float-chat-messages"
+          ref={floatMessagesRef}
+          role="log"
+          aria-live="polite"
+          aria-atomic="false"
+        >
           {floatMessages.map((msg) => (
             <div key={msg.id} className={`message ${msg.role}`}>
               <div
@@ -1791,7 +1906,22 @@ export default function Home() {
               </div>
             </div>
           ))}
+          {floatLoading && typingBubble}
         </div>
+        {floatMessages.length <= 1 && !floatLoading && (
+          <div className="prompt-chips float-prompt-chips">
+            {SUGGESTED_PROMPTS.map((p) => (
+              <button
+                key={p}
+                type="button"
+                className="prompt-chip"
+                onClick={() => sendFloat(p)}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+        )}
         <form
           onSubmit={submitFloatForm}
           className="float-chat-input"
@@ -1801,8 +1931,14 @@ export default function Home() {
             placeholder="Ask me something..."
             value={floatMessageInput}
             onChange={(e) => setFloatMessageInput(e.target.value)}
+            disabled={floatLoading}
           />
-          <button type="submit" className="float-send" aria-label="Send">
+          <button
+            type="submit"
+            className="float-send"
+            aria-label="Send"
+            disabled={floatLoading}
+          >
             <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
               <path
                 d="M18 2L9 11M18 2L12 18L9 11M18 2L2 8L9 11"

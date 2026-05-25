@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Personal portfolio website for Ahmed Dlshad Mohammed. The site has a deep-space animated canvas background, an immersive hero section with letter-by-letter assembly animations, and an OpenAI-powered chatbot that answers questions about his resume. Live at https://ahmed-dlshad-site.netlify.app. The Next.js code lives in `portifolio-website-azure-ai/` (yes, the directory name is a typo of "portfolio" — it predates this work).
+Personal portfolio website for Ahmed Dlshad Mohammed. The site has a deep-space animated canvas background, an immersive hero section with letter-by-letter assembly animations, and an AI chatbot (OpenRouter-backed, via a server-side proxy) that answers questions about his resume. The Next.js code lives in `portifolio-website-azure-ai/` (yes, the directory name is a typo of "portfolio" — it predates this work).
 
 ## Commands
 
@@ -24,9 +24,8 @@ No test suite exists. Verification is visual — open the dev server and check b
 
 Everything lives in `app/page.tsx` — a single `"use client"` component containing:
 - All section JSX (hero, marquee, about, skills, experience, projects, contact, footer)
-- Two parallel OpenAI chat states: `messages`/`setMessages` for the inline contact-section chatbot, and `floatMessages`/`setFloatMessages` for the floating chat panel
-- The full `resumeContent` string passed to OpenAI as system context
-- Multiple `useEffect` hooks that wire up: space engine boot, hero animation sequence, magnetic buttons, IntersectionObserver scroll reveals, skill tag stagger, header scroll state, floating chat open/close
+- Two parallel chat states: `messages`/`setMessages` for the inline contact-section chatbot, and `floatMessages`/`setFloatMessages` for the floating chat panel — both POST to the server-side `/api/chat/` route (the resume context no longer lives here; see Chatbot below)
+- Multiple `useEffect` hooks that wire up: space engine boot, hero animation sequence, magnetic buttons, IntersectionObserver scroll reveals + section warp jumps, skill tag stagger, header scroll state, floating chat open/close
 
 There are no child components. Animations are coordinated through `useRef` handles on elements like `heroNameInnerRef`, `heroSubtitleRef`, etc.
 
@@ -66,11 +65,17 @@ The unified purple identity breaks intentionally between sections:
 
 Implemented as `.experience-section .*` and `.projects-section .*` overrides in globals.css after the base purple styles. The space canvas behind stays the same — only the foreground UI shifts color.
 
-### Chatbot (Client-Side OpenAI)
+### Chatbot (Server-Side OpenRouter Proxy)
 
-Site is statically exported, so both chatbots call OpenAI directly from the browser using `NEXT_PUBLIC_OPENAI_API_KEY`. The `app/api/route.ts` file is **not used at runtime** — it was the original server-side route before the static export migration. It contains an older copy of the resume that can drift from the one in `page.tsx`.
+Both chatbots POST to a server-side route handler at `app/api/chat/route.ts`, which proxies to OpenRouter. The secret `OPENROUTER_API_KEY` stays on the server and never ships in the client bundle, and the request is same-origin so there is no CORS. This is what required dropping static export — the site now needs a Node.js runtime host (Vercel), and `output: 'export'` has been removed from `next.config.js`.
 
-Both inline and floating chats use identical OpenAI logic with separate state. The floating chat panel (`#float-chat-panel`) has its own slide-up animation and a pulsing button (`#float-chat-btn`).
+Key details:
+- **Model**: defaults to `anthropic/claude-haiku-4.5` (~$0.002/chat, reliable). Override at runtime via the `OPENROUTER_MODEL` env var — no code change needed (e.g. `google/gemini-2.5-flash` for lower cost). `max_tokens: 350`, `temperature: 0.7`. Avoid `:free` model slugs: their providers frequently return 402/429 regardless of your account balance.
+- **Resume context**: the full `resumeContent` / `SYSTEM_PROMPT` lives in `route.ts` as the single source of truth. It no longer ships to the browser and can't drift across copies. The old client-side `resumeContent` in `page.tsx` and the unused `app/api/route.ts` were both removed.
+- **Trailing slash**: because of `trailingSlash: true` in `next.config.js`, the client must fetch `/api/chat/` (with the trailing slash). A POST to `/api/chat` gets a 308 redirect that drops the body.
+- **Failure modes**: route returns 500 if `OPENROUTER_API_KEY` is unset, 502 if OpenRouter itself errors (logged server-side as `OpenRouter request failed:` with status + detail).
+
+Both inline (`messages`) and floating (`floatMessages`) chats use identical fetch logic with separate state. The floating chat panel (`#float-chat-panel`) has its own slide-up animation and a pulsing button (`#float-chat-btn`).
 
 ### Styling
 
@@ -90,9 +95,10 @@ Pure CSS in `app/globals.css` (~830 lines). No Tailwind classes in markup despit
 
 ## Environment Variables
 
-- `NEXT_PUBLIC_OPENAI_API_KEY` — required for chatbots (client-side, exposed in bundle)
-- `OPENAI_API_KEY` — used by the unused server-side API route
-- Dev: `.env.local` | Prod: Netlify dashboard
+- `OPENROUTER_API_KEY` — **required** for the chatbot. Server-side only (read in `app/api/chat/route.ts`); never exposed to the client.
+- `OPENROUTER_MODEL` — optional override for the chat model (defaults to `anthropic/claude-haiku-4.5`).
+- Dev: `.env.local` | Prod: Vercel project settings.
+- The legacy `NEXT_PUBLIC_OPENAI_API_KEY` / `OPENAI_API_KEY` are no longer used by any code and can be deleted from the host.
 
 ## Known Half-Implemented Features
 
@@ -103,7 +109,7 @@ These exist in the code but aren't visually dramatic — touch them only with in
 
 ## Key Constraints
 
-- Static export means no server-side API routes, middleware, or `getServerSideProps`
-- Images must use `<img>` tags or `unoptimized: true` on `next/image` — no Next.js image optimization in static export
-- The OpenAI chatbots use GPT-3.5 Turbo with `max_tokens: 150` to control costs
-- The space engine starts `requestAnimationFrame` at boot. There is a cleanup path via `window.stopSpace()` — call it on unmount if you remount the engine
+- The site is server-rendered on Vercel (no longer a static export). Server-side route handlers like `app/api/chat/route.ts` work; the chat route sets `runtime = "nodejs"` and `dynamic = "force-dynamic"` so it always runs fresh on the server.
+- Images use `<img>` tags or `unoptimized: true` on `next/image` (set in `next.config.js`) — kept from the static-export era, still fine.
+- The chatbot uses OpenRouter (`anthropic/claude-haiku-4.5` by default) with `max_tokens: 350` to control costs. See the Chatbot section.
+- The space engine starts `requestAnimationFrame` at boot. There is a cleanup path via `window.stopSpace()` — call it on unmount if you remount the engine. `window.warpBurst(intensity)` triggers a forward "jump" surge (used on section changes).
