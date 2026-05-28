@@ -289,8 +289,11 @@ function initMilkyWay() {
   if ((cfg.starCount || 0) < 300) return;  // skip on low-power devices
   // Angle: 35°-55° from horizontal, random per page load
   milkyWayAngle = (35 + Math.random() * 20) * Math.PI / 180;
-  const N = Math.floor((cfg.starCount || 550) * 0.45);  // ~250 for desktop, ~135 for mid
-  const bandHalfWidth = 0.10;  // perpendicular spread in normalized canvas units
+  // Density: 0.85 × starCount so the band reads as ~doubled local density
+  // and is clearly the densest part of the sky.
+  const N = Math.floor((cfg.starCount || 550) * 0.85);
+  // Tighter perpendicular spread — concentration is the whole point.
+  const bandHalfWidth = 0.07;
   const cosA = Math.cos(milkyWayAngle);
   const sinA = Math.sin(milkyWayAngle);
   for (let i = 0; i < N; i++) {
@@ -299,7 +302,7 @@ function initMilkyWay() {
     // Gaussian-ish perpendicular offset (Box-Muller approx)
     const r1 = Math.random(), r2 = Math.random();
     const gaussian = Math.sqrt(-2 * Math.log(r1 || 0.0001)) * Math.cos(2 * Math.PI * r2);
-    const v = gaussian * bandHalfWidth * 0.5;
+    const v = gaussian * bandHalfWidth * 0.45;
     const x = 0.5 + u * cosA - v * sinA;
     const y = 0.5 + u * sinA + v * cosA;
     if (x < -0.05 || x > 1.05 || y < -0.05 || y > 1.05) continue;
@@ -312,10 +315,12 @@ function initMilkyWay() {
     else if (sr < 0.75) specIdx = 4;   // K yellow-orange
     else                specIdx = 5;   // M red-orange (more frequent in band)
     const spec = SPECTRAL[specIdx];
-    const brightness = spec.minAlpha + Math.random() * (1 - spec.minAlpha) * 0.7;
+    // Brightness: skew toward brighter end so the band visibly outshines
+    // the background star field (was 0.7 multiplier — too dim to perceive).
+    const brightness = spec.minAlpha + Math.random() * (1 - spec.minAlpha) * 0.95;
     milkyWayStars.push({
       x, y, baseX: x, baseY: y,
-      r: 0.3 + Math.random() * 0.7 + (spec.sizeBonus || 0) * 0.5,
+      r: 0.4 + Math.random() * 0.9 + (spec.sizeBonus || 0) * 0.6,
       baseAlpha: brightness,
       twinkleSpeed: 0.4 + Math.random() * 2.0,
       twinklePhase: Math.random() * Math.PI * 2,
@@ -323,16 +328,19 @@ function initMilkyWay() {
       specIdx,
       parallax: 0.008 + Math.random() * 0.018,
       scintillation: 0.5 + y * 1.5,
-      layer: 0,
-      z: 0.5 + Math.random() * 0.3, baseZ: 0,
+      layer: 1,  // mid-layer treatment → bigger size + halo eligibility
+      z: 0.4 + Math.random() * 0.3, baseZ: 0,
     });
     milkyWayStars[milkyWayStars.length - 1].baseZ = milkyWayStars[milkyWayStars.length - 1].z;
   }
 }
 
-/* Pre-render the warm dust haze along the band into the offscreen Milky Way
-   canvas. Drawn once at init (and on resize) since the gradient is static.
-   Composited at screen-blend each frame — cheap. */
+/* Pre-render the Milky Way glow along the band into the offscreen canvas.
+   Two-tone: a cool-violet bright core (suggesting unresolved stars + HII
+   regions) layered with warmer amber dust edges (interstellar dust). The
+   contrast between cool-core and warm-edge is what makes real Milky Way
+   photographs read as "the band" instead of "a haze."
+   Drawn once at init/resize — static gradient. */
 function renderMilkyWayGlow() {
   if (!milkyWayCtx) return;
   const c = milkyWayCtx;
@@ -343,27 +351,40 @@ function renderMilkyWayGlow() {
   c.translate(nebulaW * 0.5, nebulaH * 0.5);
   c.rotate(milkyWayAngle);
 
-  const bandLen = Math.max(nebulaW, nebulaH) * 1.4;
-  const bandThick = Math.min(nebulaW, nebulaH) * 0.28;
+  const bandLen = Math.max(nebulaW, nebulaH) * 1.5;
+  const bandThick = Math.min(nebulaW, nebulaH) * 0.42;
 
-  // Perpendicular gradient: transparent → amber peak → transparent
-  const g = c.createLinearGradient(0, -bandThick * 0.5, 0, bandThick * 0.5);
-  g.addColorStop(0,    'rgba(160, 130, 90, 0)');
-  g.addColorStop(0.35, 'rgba(180, 145, 100, 0.025)');
-  g.addColorStop(0.5,  'rgba(195, 160, 110, 0.05)');
-  g.addColorStop(0.65, 'rgba(180, 145, 100, 0.025)');
-  g.addColorStop(1,    'rgba(160, 130, 90, 0)');
-  c.fillStyle = g;
+  // Outer warm dust halo — fills the full thickness, soft amber
+  const g1 = c.createLinearGradient(0, -bandThick * 0.5, 0, bandThick * 0.5);
+  g1.addColorStop(0,    'rgba(150, 110, 75, 0)');
+  g1.addColorStop(0.25, 'rgba(170, 130, 90, 0.06)');
+  g1.addColorStop(0.5,  'rgba(190, 150, 105, 0.10)');
+  g1.addColorStop(0.75, 'rgba(170, 130, 90, 0.06)');
+  g1.addColorStop(1,    'rgba(150, 110, 75, 0)');
+  c.fillStyle = g1;
   c.fillRect(-bandLen * 0.5, -bandThick * 0.5, bandLen, bandThick);
 
-  // Subtle longitudinal density variation — denser middle, fades at ends
-  const g2 = c.createLinearGradient(-bandLen * 0.5, 0, bandLen * 0.5, 0);
-  g2.addColorStop(0,    'rgba(0, 0, 0, 0.35)');
-  g2.addColorStop(0.25, 'rgba(0, 0, 0, 0)');
-  g2.addColorStop(0.75, 'rgba(0, 0, 0, 0)');
-  g2.addColorStop(1,    'rgba(0, 0, 0, 0.35)');
-  c.globalCompositeOperation = 'destination-out';
+  // Bright cool-violet core — narrower, brighter, screen-composited
+  const coreThick = bandThick * 0.42;
+  const g2 = c.createLinearGradient(0, -coreThick * 0.5, 0, coreThick * 0.5);
+  g2.addColorStop(0,   'rgba(180, 190, 230, 0)');
+  g2.addColorStop(0.5, 'rgba(210, 220, 250, 0.16)');
+  g2.addColorStop(1,   'rgba(180, 190, 230, 0)');
+  c.globalCompositeOperation = 'lighter';
   c.fillStyle = g2;
+  c.fillRect(-bandLen * 0.5, -coreThick * 0.5, bandLen, coreThick);
+  c.globalCompositeOperation = 'source-over';
+
+  // Longitudinal density bulge — denser/brighter mid-band, fades at ends
+  // (real galactic centre is brighter than the arms — quick fake of that)
+  const g3 = c.createLinearGradient(-bandLen * 0.5, 0, bandLen * 0.5, 0);
+  g3.addColorStop(0,    'rgba(0, 0, 0, 0.55)');
+  g3.addColorStop(0.20, 'rgba(0, 0, 0, 0.15)');
+  g3.addColorStop(0.50, 'rgba(0, 0, 0, 0)');
+  g3.addColorStop(0.80, 'rgba(0, 0, 0, 0.15)');
+  g3.addColorStop(1,    'rgba(0, 0, 0, 0.55)');
+  c.globalCompositeOperation = 'destination-out';
+  c.fillStyle = g3;
   c.fillRect(-bandLen * 0.5, -bandThick * 0.5, bandLen, bandThick);
   c.globalCompositeOperation = 'source-over';
 
@@ -895,7 +916,7 @@ function drawFrame(timestamp) {
   }
 
   /* ═══ Milky Way stars — denser band ═══ */
-  if (milkyWayStars.length > 0) drawStars(milkyWayStars, 0.7);
+  if (milkyWayStars.length > 0) drawStars(milkyWayStars, 0.95);
 
   /* ═══ LAYERS 5+6: Nebula (offscreen composite) ═══ */
   if (offscreenFrameCount % 4 === 0 || offscreenFrameCount <= 1) {
@@ -1064,7 +1085,7 @@ function drawFrame(timestamp) {
       activeNova.age += dt;
       if (activeNova.age > activeNova.maxAge) {
         activeNova = null;
-        nextNovaAt = wallTime + 120 + Math.random() * 60;  // 2-3 min until next
+        nextNovaAt = wallTime + 50 + Math.random() * 20;  // ~60s avg until next (50-70s)
       } else {
         const n = activeNova;
         const age = n.age;
@@ -1332,7 +1353,7 @@ window.bootSpace = function(defaults) {
   renderMilkyWayGlow();
   // Schedule first nova 60-120s after boot
   wallTime = 0;
-  nextNovaAt = 60 + Math.random() * 60;
+  nextNovaAt = 25 + Math.random() * 20;  // first nova lands ~25-45s after boot
   activeNova = null;
   lastFrameTime = 0;
   cancelAnimationFrame(rafHandle);
