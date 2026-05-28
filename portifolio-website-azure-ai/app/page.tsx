@@ -1306,7 +1306,7 @@ export default function Home() {
             </div>
             <div className="footer-bottom">
               <p>&copy; {new Date().getFullYear()} Ahmed Dlshad. All rights reserved.</p>
-              <p>Built with Next.js &amp; ❤️</p>
+              <p>Designed and built in Sulaymaniyah · Next.js</p>
             </div>
           </div>
         </footer>
