@@ -538,7 +538,7 @@ export default function Home() {
       span.className = "hero-letter";
       span.textContent = ch === " " ? " " : ch;
       const angle = Math.random() * Math.PI * 2;
-      const dist = 60 + Math.random() * 120;
+      const dist = 120 + Math.random() * 220;
       const lx = Math.cos(angle) * dist;
       const ly = Math.sin(angle) * dist - 30;
       const lr = (Math.random() - 0.5) * 60;
