@@ -63,6 +63,17 @@ a { text-decoration: none; color: inherit; transition: var(--transition-normal);
 /* ── Accessible focus ring (keyboard users only) ── */
 :focus-visible { outline: 2px solid var(--purple-300); outline-offset: 2px; border-radius: 4px; }
 
+/* ── Skip link: invisible until focused by keyboard ── */
+.skip-link {
+  position: fixed; top: 8px; left: 8px; z-index: 10000;
+  padding: 10px 16px; border-radius: 8px;
+  background: var(--purple-500); color: var(--white);
+  font-weight: 600; font-size: 14px;
+  transform: translateY(-150%);
+  transition: transform 0.2s ease;
+}
+.skip-link:focus { transform: translateY(0); outline: 2px solid var(--white); outline-offset: 2px; }
+
 /* ── Layout ── */
 .container { max-width: var(--container-max); margin: 0 auto; padding: 0 24px; }
 section { padding: var(--section-padding) 0; position: relative; z-index: 1; }
@@ -114,7 +125,7 @@ nav li a.button {
   border-radius: 10px; box-shadow: 0 4px 15px rgba(147,51,234,0.3);
 }
 nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(147,51,234,0.5); }
-.mobile-toggle { display: none; background: none; border: none; color: var(--white); cursor: pointer; padding: 8px; border-radius: 8px; }
+.mobile-toggle { display: none; background: none; border: none; color: var(--white); cursor: pointer; padding: 10px; border-radius: 8px; min-width: 44px; min-height: 44px; align-items: center; justify-content: center; }
 .mobile-toggle:hover { background: rgba(147,51,234,0.1); }
 
 /* ── Buttons ── */
@@ -158,20 +169,22 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
 
 /* ── Hero ── */
 .hero-modern {
-  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex; align-items: center; justify-content: center;
   position: relative; padding: 120px 24px 80px;
   background: transparent; overflow: hidden;
 }
 .hero-modern::before { display: none; }
 .hero-content {
-  max-width: 1100px;
+  max-width: 1320px;
   margin: 0 auto;
   min-width: 0;
   position: relative; z-index: 1; width: 100%;
   text-align: left;
 }
 .hero-title {
-  font-size: clamp(40px, 11vw, 168px);
+  font-size: clamp(40px, 10vw, 152px);
   font-weight: 800;
   line-height: 0.95;
   letter-spacing: -0.035em;
@@ -515,6 +528,22 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
 .contact-method svg { flex-shrink: 0; color: var(--purple-400); }
 .contact-method h4 { font-size: 15px; margin-bottom: 3px; }
 .contact-method p { font-size: 13px; color: var(--gray-400); margin: 0; }
+.contact-method .contact-method-body { flex: 1; min-width: 0; }
+
+/* Copy-email button — sits inside the email row, doesn't trigger the mailto */
+.email-copy-btn {
+  flex-shrink: 0;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 12px; border-radius: 8px;
+  background: rgba(147,51,234,0.22);
+  border: 1px solid rgba(147,51,234,0.4);
+  color: var(--white);
+  font-family: inherit; font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+.email-copy-btn:hover { background: rgba(147,51,234,0.36); border-color: rgba(217,70,239,0.55); }
+.email-copy-btn svg { color: currentColor; }
+.email-copy-btn[aria-label="Email copied"] { background: rgba(22,101,52,0.55); border-color: rgba(34,197,94,0.65); color: var(--white); }
 
 .contact-cta {
   margin: 28px 0 32px;
@@ -578,19 +607,26 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
 
 /* ── Floating Chat Button ── */
 #float-chat-btn {
-  position: fixed; bottom: 32px; right: 32px; z-index: 9000;
-  width: 60px; height: 60px; border-radius: 50%;
-  background: var(--gradient-purple);
-  box-shadow: 0 6px 30px rgba(147,51,234,0.6), 0 0 0 0 rgba(147,51,234,0.4);
+  position: fixed; bottom: 24px; right: 24px; z-index: 9000;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: rgba(147,51,234,0.55);
+  backdrop-filter: blur(12px) saturate(140%);
+  box-shadow: 0 4px 18px rgba(0,0,0,0.45), 0 0 0 1px rgba(147,51,234,0.25);
   border: none; cursor: pointer; color: var(--white);
   display: flex; align-items: center; justify-content: center;
-  animation: float-btn-pulse 2.5s ease-in-out infinite;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  opacity: 0.78;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, opacity 0.25s ease;
 }
-#float-chat-btn:hover { transform: scale(1.12); box-shadow: 0 10px 40px rgba(147,51,234,0.8); animation: none; }
-@keyframes float-btn-pulse {
-  0%,100%{box-shadow:0 6px 30px rgba(147,51,234,0.6),0 0 0 0 rgba(147,51,234,0.4)}
-  50%{box-shadow:0 6px 30px rgba(147,51,234,0.6),0 0 0 14px rgba(147,51,234,0)}
+#float-chat-btn:hover {
+  transform: scale(1.08);
+  opacity: 1;
+  background: var(--gradient-purple);
+  box-shadow: 0 10px 40px rgba(147,51,234,0.8);
+}
+#float-chat-btn:focus-visible {
+  opacity: 1;
+  background: var(--gradient-purple);
+  box-shadow: 0 8px 30px rgba(147,51,234,0.7);
 }
 /* ── Floating Chat Panel ── */
 #float-chat-panel {
@@ -614,7 +650,7 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
 .float-chat-header-left { display: flex; align-items: center; gap: 10px; }
 .float-chat-header h4 { color: var(--white); font-size: 15px; margin: 0; }
 .float-chat-close {
-  width: 28px; height: 28px; border-radius: 50%; border: none; cursor: pointer;
+  width: 36px; height: 36px; border-radius: 50%; border: none; cursor: pointer;
   background: rgba(255,255,255,0.2); color: var(--white);
   display: flex; align-items: center; justify-content: center;
   transition: background 0.2s; font-size: 14px;

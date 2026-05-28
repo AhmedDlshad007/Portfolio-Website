@@ -200,6 +200,7 @@ export default function Home() {
   const [floatMessageInput, setFloatMessageInput] = useState("");
   const [floatOpen, setFloatOpen] = useState(false);
   const [floatLoading, setFloatLoading] = useState(false);
+  const [emailCopied, setEmailCopied] = useState(false);
 
   /* ── refs ── */
   const heroNameInnerRef = useRef<HTMLSpanElement>(null);
@@ -208,6 +209,8 @@ export default function Home() {
   const heroCtaRef = useRef<HTMLDivElement>(null);
   const heroSocialRef = useRef<HTMLDivElement>(null);
   const floatMessagesRef = useRef<HTMLDivElement>(null);
+  const floatPanelRef = useRef<HTMLDivElement>(null);
+  const floatReturnFocusRef = useRef<HTMLElement | null>(null);
 
   /* Note: the assistant's resume context now lives server-side in
      app/api/chat/route.ts — kept out of the client bundle as the single
@@ -307,6 +310,32 @@ export default function Home() {
 
   const toggleMobileMenu = () => setMenuOpen(!menuOpen);
 
+  /* Copy email to clipboard with a 1.5s confirmation flash */
+  const copyEmail = useCallback(async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const email = "ahmed.dlshad.m@gmail.com";
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(email);
+      } else {
+        // Fallback for older browsers / non-secure contexts
+        const ta = document.createElement("textarea");
+        ta.value = email;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+      setEmailCopied(true);
+      setTimeout(() => setEmailCopied(false), 1500);
+    } catch {
+      // copy failed silently — user still has the mailto: link
+    }
+  }, []);
+
   /* ══════════════════════════════════════════
      Auto-scroll chat containers when messages change
   ══════════════════════════════════════════ */
@@ -330,6 +359,17 @@ export default function Home() {
       window.matchMedia &&
       (window.matchMedia("(max-width: 768px)").matches ||
         window.matchMedia("(pointer: coarse)").matches);
+    // Detect low-power hardware: <4 logical cores, or <4GB device memory, or "save-data" hint.
+    // navigator.deviceMemory / connection are non-standard but widely supported on mobile Chrome.
+    const nav = typeof navigator !== "undefined" ? navigator : undefined;
+    const navWithExtras = nav as Navigator & {
+      deviceMemory?: number;
+      connection?: { saveData?: boolean };
+    } | undefined;
+    const cores = nav?.hardwareConcurrency ?? 8;
+    const mem = navWithExtras?.deviceMemory ?? 8;
+    const saveData = !!navWithExtras?.connection?.saveData;
+    const lowPower = cores < 4 || mem < 4 || saveData;
     let freezeTimer: ReturnType<typeof setTimeout> | undefined;
     const script = document.createElement("script");
     script.src = "/space-engine.js";
@@ -337,21 +377,21 @@ export default function Home() {
       if (window.bootSpace) {
         window.bootSpace({
           blobCount: 0,
-          reactivity: reduce ? 0 : 75,
-          blurAmount: 50,
+          reactivity: reduce || lowPower ? 0 : 75,
+          blurAmount: lowPower ? 0 : 50,
           opacity: 4,
           colorMode: "deep-space",
-          scrollShift: !reduce,
-          rippleOnClick: !reduce,
+          scrollShift: !reduce && !lowPower,
+          rippleOnClick: !reduce && !lowPower,
           gridLines: false,
           speed: 50,
-          starCount: isMobile ? 300 : 550,
-          deepFieldCount: isMobile ? 1400 : 4000,
-          showStreaks: !reduce,
-          warpEffect: !reduce,
+          starCount: lowPower ? 150 : isMobile ? 300 : 550,
+          deepFieldCount: lowPower ? 600 : isMobile ? 1400 : 4000,
+          showStreaks: !reduce && !lowPower,
+          warpEffect: !reduce && !lowPower,
         });
-        // Reduced motion: let the layered scene build, then freeze to a static starfield.
-        if (reduce) {
+        // Reduced motion OR low-power device: let the layered scene build, then freeze to a static starfield.
+        if (reduce || lowPower) {
           freezeTimer = setTimeout(() => {
             if (window.stopSpace) window.stopSpace();
           }, 400);
@@ -691,8 +731,66 @@ export default function Home() {
      Floating Chat toggle
   ══════════════════════════════════════════ */
   const toggleFloatChat = useCallback(() => {
-    setFloatOpen((prev) => !prev);
+    setFloatOpen((prev) => {
+      if (!prev) {
+        // remember the element that opened the dialog so we can restore focus on close
+        floatReturnFocusRef.current =
+          (document.activeElement as HTMLElement) || null;
+      }
+      return !prev;
+    });
   }, []);
+
+  /* ══════════════════════════════════════════
+     Floating Chat: ESC to close + focus trap + restore focus
+  ══════════════════════════════════════════ */
+  useEffect(() => {
+    if (!floatOpen) return;
+    const panel = floatPanelRef.current;
+    if (!panel) return;
+
+    // Move focus into the dialog on open (first focusable element, or the panel itself)
+    const focusables = () =>
+      Array.from(
+        panel.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((el) => !el.hasAttribute("aria-hidden"));
+
+    const first = focusables()[0];
+    if (first) first.focus();
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setFloatOpen(false);
+        return;
+      }
+      if (e.key === "Tab") {
+        const f = focusables();
+        if (f.length === 0) return;
+        const firstEl = f[0];
+        const lastEl = f[f.length - 1];
+        const active = document.activeElement as HTMLElement | null;
+        if (e.shiftKey && active === firstEl) {
+          e.preventDefault();
+          lastEl.focus();
+        } else if (!e.shiftKey && active === lastEl) {
+          e.preventDefault();
+          firstEl.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      // restore focus to the element that opened the dialog
+      const ret = floatReturnFocusRef.current;
+      if (ret && typeof ret.focus === "function") {
+        ret.focus();
+      }
+    };
+  }, [floatOpen]);
 
   /* Typing indicator bubble (shown while awaiting an AI reply) */
   const typingBubble = (
@@ -749,6 +847,9 @@ export default function Home() {
           overflow: "hidden",
         }}
       />
+
+      {/* Skip link — visible on keyboard focus only */}
+      <a href="#main-content" className="skip-link">Skip to content</a>
 
       {/* ── Header ── */}
       <header id="site-header" className={scrolled ? "scrolled" : ""}>
@@ -809,7 +910,7 @@ export default function Home() {
         </div>
       </header>
 
-      <main>
+      <main id="main-content">
         {/* ══════════ Hero Section ══════════ */}
         <section id="home" className="hero-modern">
           <div className="hero-content">
@@ -1213,7 +1314,7 @@ export default function Home() {
                 <div className="contact-methods">
                   <a
                     href="mailto:ahmed.dlshad.m@gmail.com"
-                    className="contact-method"
+                    className="contact-method contact-method-email"
                   >
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                       <path
@@ -1224,10 +1325,28 @@ export default function Home() {
                         strokeLinejoin="round"
                       />
                     </svg>
-                    <div>
+                    <div className="contact-method-body">
                       <h4>Email</h4>
                       <p>ahmed.dlshad.m@gmail.com</p>
                     </div>
+                    <button
+                      type="button"
+                      className="email-copy-btn"
+                      onClick={copyEmail}
+                      aria-label={emailCopied ? "Email copied" : "Copy email to clipboard"}
+                    >
+                      {emailCopied ? (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      ) : (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <rect x="9" y="9" width="11" height="11" rx="2" stroke="currentColor" strokeWidth="2" />
+                          <path d="M5 15V5C5 3.89543 5.89543 3 7 3H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        </svg>
+                      )}
+                      <span className="email-copy-label">{emailCopied ? "Copied" : "Copy"}</span>
+                    </button>
                   </a>
 
                   <a
@@ -1357,10 +1476,12 @@ export default function Home() {
       {/* ══════════ Floating Chat Panel ══════════ */}
       <div
         id="float-chat-panel"
+        ref={floatPanelRef}
         className={floatOpen ? "open" : ""}
         role="dialog"
         aria-label="AI Assistant Chat"
-        aria-modal={floatOpen}
+        aria-modal="true"
+        aria-hidden={!floatOpen}
       >
         <div className="float-chat-header">
           <div className="float-chat-header-left">
