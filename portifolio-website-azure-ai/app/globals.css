@@ -347,28 +347,6 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
 }
 @keyframes bounce { 0%,100%{transform:translate(-50%,0)} 50%{transform:translate(-50%,10px)} }
 
-/* ── Marquee — transparent, fades into space on both sides ── */
-.tech-marquee {
-  background: transparent;
-  overflow: hidden;
-  border-top: none; border-bottom: none;
-  padding: 48px 0; position: relative; z-index: 1;
-}
-.tech-marquee::before, .tech-marquee::after {
-  content: ''; position: absolute; top: 0; bottom: 0; width: 180px; z-index: 2; pointer-events: none;
-}
-.tech-marquee::before { left: 0;  background: linear-gradient(90deg, #030007 0%, transparent 100%); }
-.tech-marquee::after  { right: 0; background: linear-gradient(270deg, #030007 0%, transparent 100%); }
-.marquee { overflow: hidden; position: relative; }
-.track {
-  display: flex; gap: 60px;
-  animation: marquee 40s linear infinite; will-change: transform;
-  width: max-content;
-}
-.track span { opacity: 0.72; transition: opacity 0.3s ease; }
-.track span:hover { opacity: 1; }
-@keyframes marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
-
 /* ── Section shared ── */
 .section-header { text-align: center; margin-bottom: 60px; }
 .section-label {
@@ -913,6 +891,4 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
     scroll-behavior: auto !important;
   }
   .reveal { opacity: 1 !important; transform: none !important; }
-  .track { animation: none !important; }
-  .track span { opacity: 0.78; }
 }

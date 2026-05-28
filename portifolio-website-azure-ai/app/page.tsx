@@ -15,22 +15,6 @@ declare global {
 }
 
 /* ────────────────────────────────────────────
-   Marquee tech list (text spans, repeated for seamless loop)
-──────────────────────────────────────────── */
-const MARQUEE_TECHS = [
-  "Python", "TypeScript", "JavaScript", "React", "Next.js", "Node.js",
-  "Flask", "Tailwind CSS", "MCP", "OpenRouter", "OpenAI API", "Hugging Face",
-  "RAG", "AWS", "Docker", "Vercel", "Git", "C++",
-];
-
-const marqueeSpanStyle: React.CSSProperties = {
-  color: "var(--purple-300)",
-  fontWeight: 700,
-  fontSize: "15px",
-  whiteSpace: "nowrap",
-};
-
-/* ────────────────────────────────────────────
    Suggested chat prompts (shown before the first user message)
 ──────────────────────────────────────────── */
 const SUGGESTED_PROMPTS = [
@@ -1104,26 +1088,6 @@ export default function Home() {
                 strokeLinejoin="round"
               />
             </svg>
-          </div>
-        </section>
-
-        {/* ══════════ Tech Marquee ══════════ */}
-        <section className="tech-marquee">
-          <div className="marquee">
-            <div className="track">
-              {/* First set */}
-              {MARQUEE_TECHS.map((tech, i) => (
-                <span key={`m1-${i}`} style={marqueeSpanStyle}>
-                  {tech}
-                </span>
-              ))}
-              {/* Repeat for seamless loop */}
-              {MARQUEE_TECHS.map((tech, i) => (
-                <span key={`m2-${i}`} style={marqueeSpanStyle}>
-                  {tech}
-                </span>
-              ))}
-            </div>
           </div>
         </section>
 
