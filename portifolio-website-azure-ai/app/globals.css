@@ -40,7 +40,7 @@
 html { scroll-behavior: smooth; scroll-padding-top: 80px; }
 
 body {
-  font-family: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-space), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 16px;
   line-height: 1.6;
   background: var(--black);
@@ -52,7 +52,12 @@ body {
 /* All section backgrounds are transparent so the canvas shows through */
 
 /* ── Typography ── */
-h1, h2, h3, h4, h5, h6 { line-height: 1.2; font-weight: 700; color: var(--white); }
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-archivo), var(--font-space), -apple-system, sans-serif;
+  line-height: 1.2;
+  font-weight: 700;
+  color: var(--white);
+}
 a { text-decoration: none; color: inherit; transition: var(--transition-normal); }
 
 /* ── Accessible focus ring (keyboard users only) ── */
