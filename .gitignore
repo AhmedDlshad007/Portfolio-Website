@@ -33,3 +33,6 @@ yarn-error.log*
 # Design handoff bundles (user iterates on these locally)
 portfolio/
 *.tar.gz
+
+# Claude Code local state
+.claude/
