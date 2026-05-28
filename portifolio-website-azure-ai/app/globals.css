@@ -510,7 +510,7 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
 
 /* ── Contact ── */
 .contact-section { background: transparent; }
-.contact-content { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; }
+.contact-content { max-width: 720px; margin: 0 auto; }
 .contact-info h3 { font-size: 30px; margin-bottom: 14px; }
 .contact-info p { color: var(--gray-400); margin-bottom: 14px; line-height: 1.8; }
 .contact-methods { display: flex; flex-direction: column; gap: 14px; margin-top: 28px; }
@@ -529,6 +529,11 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
 .contact-method svg { flex-shrink: 0; color: var(--purple-400); }
 .contact-method h4 { font-size: 15px; margin-bottom: 3px; }
 .contact-method p { font-size: 13px; color: var(--gray-400); margin: 0; }
+
+.contact-cta {
+  margin: 28px 0 32px;
+  font-size: 16px;
+}
 
 /* ── Chatbot ── */
 .chatbot-container {
@@ -781,7 +786,6 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
 /* ── Responsive ── */
 @media (max-width: 1024px) {
   :root { --section-padding: 80px; }
-  .contact-content { grid-template-columns: 1fr; gap: 40px; }
   .section-title { font-size: 40px; }
   .projects-grid { grid-template-columns: repeat(2, 1fr); }
   .project-card.featured .project-content { max-width: 100%; padding: 36px; }

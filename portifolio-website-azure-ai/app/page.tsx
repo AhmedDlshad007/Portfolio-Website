@@ -1304,17 +1304,29 @@ export default function Home() {
             </div>
 
             <div className="contact-content">
-              <div className="contact-info reveal from-left">
+              <div className="contact-info reveal">
                 <h3>AI-Powered Assistant</h3>
                 <p>
-                  I&apos;ve created an AI chatbot that knows all about my skills,
-                  work experience, and background. Feel free to ask it anything
-                  about my qualifications, projects, or experience!
+                  I&apos;ve created an AI chatbot that knows my skills, work
+                  experience, and background. Ask it anything about my
+                  qualifications, projects, or experience.
                 </p>
                 <p>
-                  You can also reach out to me directly or download my resume to
-                  learn more about my work.
+                  Prefer human contact? Email me, connect on LinkedIn, or
+                  download my resume below.
                 </p>
+
+                <button
+                  type="button"
+                  className="button primary magnetic contact-cta"
+                  onClick={toggleFloatChat}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z"
+                      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <span>Talk to my AI</span>
+                </button>
 
                 <div className="contact-methods">
                   <a
@@ -1386,92 +1398,6 @@ export default function Home() {
                     </div>
                   </a>
                 </div>
-              </div>
-
-              {/* Inline chatbot */}
-              <div
-                className="chatbot-container reveal scale-in"
-                style={{ transitionDelay: "0.2s" }}
-              >
-                <div className="chat-header">
-                  <div className="chat-header-info">
-                    <div className="chat-avatar">
-                      <svg
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                      >
-                        <path
-                          d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 5C13.66 5 15 6.34 15 8C15 9.66 13.66 11 12 11C10.34 11 9 9.66 9 8C9 6.34 10.34 5 12 5ZM12 19.2C9.5 19.2 7.29 17.92 6 15.98C6.03 13.99 10 12.9 12 12.9C13.99 12.9 17.97 13.99 18 15.98C16.71 17.92 14.5 19.2 12 19.2Z"
-                          fill="currentColor"
-                        />
-                      </svg>
-                    </div>
-                    <div>
-                      <h4>AI Assistant</h4>
-                      <span className="status-indicator">
-                        <span className="status-dot"></span>Online
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="chat-messages">
-                  <div
-                    className="messages-scroll"
-                    ref={inlineScrollRef}
-                    role="log"
-                    aria-live="polite"
-                    aria-atomic="false"
-                  >
-                    {messages.map(renderMessage)}
-                    {isLoading && typingBubble}
-                  </div>
-                </div>
-                {messages.length <= 1 && !isLoading && (
-                  <div className="prompt-chips">
-                    {SUGGESTED_PROMPTS.map((p) => (
-                      <button
-                        key={p}
-                        type="button"
-                        className="prompt-chip"
-                        onClick={() => sendInline(p)}
-                      >
-                        {p}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                <form onSubmit={submitForm} className="chat-input-form">
-                  <input
-                    type="text"
-                    placeholder="Ask me about Ahmed's skills, experience, or projects..."
-                    value={messageInput}
-                    onChange={(e) => setMessageInput(e.target.value)}
-                    disabled={isLoading}
-                  />
-                  <button
-                    type="submit"
-                    className="send-button"
-                    aria-label="Send message"
-                    disabled={isLoading}
-                  >
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 20 20"
-                      fill="none"
-                    >
-                      <path
-                        d="M18 2L9 11M18 2L12 18L9 11M18 2L2 8L9 11"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </button>
-                </form>
               </div>
             </div>
           </div>
