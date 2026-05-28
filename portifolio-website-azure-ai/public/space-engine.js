@@ -33,6 +33,18 @@ let mouseVel = { x: 0, y: 0 };
 let scroll = 0;
 let cfg = {};
 let lastFrameTime = 0;
+let wallTime = 0;  // accumulates raw dt in seconds — used for nova scheduling + global drift
+
+/* Milky Way band — session-fixed diagonal sweep of denser stars + warm dust glow.
+   The single biggest "this is real space" cue. Disabled on low-power. */
+let milkyWayAngle = 0;          // radians, fixed per page load
+let milkyWayStars = [];          // additional stars concentrated along band
+let milkyWayCanvas = null, milkyWayCtx = null;
+
+/* Rare nova event — a single bright point that flares + fades. Spawns every
+   ~2-3 minutes. The "did you see that?" moment that rewards staying. */
+let nextNovaAt = 0;              // wall-seconds until next nova
+let activeNova = null;
 
 /* ══════════════════════════════════════════════
    2D SIMPLEX NOISE (self-contained IIFE)
@@ -267,6 +279,98 @@ function initClusters() {
 }
 
 /* ══════════════════════════════════════════════
+   MILKY WAY BAND — diagonal galactic plane.
+   N stars distributed along a band axis with gaussian falloff perpendicular
+   to the axis. Spectral bias toward warmer types (K/M) to match real
+   galactic-plane reflection from interstellar dust.
+══════════════════════════════════════════════ */
+function initMilkyWay() {
+  milkyWayStars = [];
+  if ((cfg.starCount || 0) < 300) return;  // skip on low-power devices
+  // Angle: 35°-55° from horizontal, random per page load
+  milkyWayAngle = (35 + Math.random() * 20) * Math.PI / 180;
+  const N = Math.floor((cfg.starCount || 550) * 0.45);  // ~250 for desktop, ~135 for mid
+  const bandHalfWidth = 0.10;  // perpendicular spread in normalized canvas units
+  const cosA = Math.cos(milkyWayAngle);
+  const sinA = Math.sin(milkyWayAngle);
+  for (let i = 0; i < N; i++) {
+    // Position along band axis [-0.7..0.7], extending beyond canvas
+    const u = (Math.random() - 0.5) * 1.4;
+    // Gaussian-ish perpendicular offset (Box-Muller approx)
+    const r1 = Math.random(), r2 = Math.random();
+    const gaussian = Math.sqrt(-2 * Math.log(r1 || 0.0001)) * Math.cos(2 * Math.PI * r2);
+    const v = gaussian * bandHalfWidth * 0.5;
+    const x = 0.5 + u * cosA - v * sinA;
+    const y = 0.5 + u * sinA + v * cosA;
+    if (x < -0.05 || x > 1.05 || y < -0.05 || y > 1.05) continue;
+    // Spectral bias: warm (G/K/M) more likely along the galactic plane
+    let specIdx;
+    const sr = Math.random();
+    if      (sr < 0.05) specIdx = 1;   // A blue-white (rare)
+    else if (sr < 0.20) specIdx = 2;   // F neutral white
+    else if (sr < 0.45) specIdx = 3;   // G warm white
+    else if (sr < 0.75) specIdx = 4;   // K yellow-orange
+    else                specIdx = 5;   // M red-orange (more frequent in band)
+    const spec = SPECTRAL[specIdx];
+    const brightness = spec.minAlpha + Math.random() * (1 - spec.minAlpha) * 0.7;
+    milkyWayStars.push({
+      x, y, baseX: x, baseY: y,
+      r: 0.3 + Math.random() * 0.7 + (spec.sizeBonus || 0) * 0.5,
+      baseAlpha: brightness,
+      twinkleSpeed: 0.4 + Math.random() * 2.0,
+      twinklePhase: Math.random() * Math.PI * 2,
+      twinkleF2: 1.4 + Math.random() * 0.8,  // beat frequency
+      specIdx,
+      parallax: 0.008 + Math.random() * 0.018,
+      scintillation: 0.5 + y * 1.5,
+      layer: 0,
+      z: 0.5 + Math.random() * 0.3, baseZ: 0,
+    });
+    milkyWayStars[milkyWayStars.length - 1].baseZ = milkyWayStars[milkyWayStars.length - 1].z;
+  }
+}
+
+/* Pre-render the warm dust haze along the band into the offscreen Milky Way
+   canvas. Drawn once at init (and on resize) since the gradient is static.
+   Composited at screen-blend each frame — cheap. */
+function renderMilkyWayGlow() {
+  if (!milkyWayCtx) return;
+  const c = milkyWayCtx;
+  c.clearRect(0, 0, nebulaW, nebulaH);
+  if (milkyWayStars.length === 0) return;  // nothing to glow
+
+  c.save();
+  c.translate(nebulaW * 0.5, nebulaH * 0.5);
+  c.rotate(milkyWayAngle);
+
+  const bandLen = Math.max(nebulaW, nebulaH) * 1.4;
+  const bandThick = Math.min(nebulaW, nebulaH) * 0.28;
+
+  // Perpendicular gradient: transparent → amber peak → transparent
+  const g = c.createLinearGradient(0, -bandThick * 0.5, 0, bandThick * 0.5);
+  g.addColorStop(0,    'rgba(160, 130, 90, 0)');
+  g.addColorStop(0.35, 'rgba(180, 145, 100, 0.025)');
+  g.addColorStop(0.5,  'rgba(195, 160, 110, 0.05)');
+  g.addColorStop(0.65, 'rgba(180, 145, 100, 0.025)');
+  g.addColorStop(1,    'rgba(160, 130, 90, 0)');
+  c.fillStyle = g;
+  c.fillRect(-bandLen * 0.5, -bandThick * 0.5, bandLen, bandThick);
+
+  // Subtle longitudinal density variation — denser middle, fades at ends
+  const g2 = c.createLinearGradient(-bandLen * 0.5, 0, bandLen * 0.5, 0);
+  g2.addColorStop(0,    'rgba(0, 0, 0, 0.35)');
+  g2.addColorStop(0.25, 'rgba(0, 0, 0, 0)');
+  g2.addColorStop(0.75, 'rgba(0, 0, 0, 0)');
+  g2.addColorStop(1,    'rgba(0, 0, 0, 0.35)');
+  c.globalCompositeOperation = 'destination-out';
+  c.fillStyle = g2;
+  c.fillRect(-bandLen * 0.5, -bandThick * 0.5, bandLen, bandThick);
+  c.globalCompositeOperation = 'source-over';
+
+  c.restore();
+}
+
+/* ══════════════════════════════════════════════
    DARK NEBULAE — negative space blockers
 ══════════════════════════════════════════════ */
 let darkNebulae = [];
@@ -464,6 +568,12 @@ function createOffscreenCanvases() {
   dustCanvas.width = nebulaW;
   dustCanvas.height = nebulaH;
   dustCtx = dustCanvas.getContext('2d');
+
+  milkyWayCanvas = document.createElement('canvas');
+  milkyWayCanvas.width = nebulaW;
+  milkyWayCanvas.height = nebulaH;
+  milkyWayCtx = milkyWayCanvas.getContext('2d');
+  renderMilkyWayGlow();  // static — render once, reuse each frame
 }
 
 /* Pre-render one radial glow sprite per spectral type (full alpha). Drawn with
@@ -673,6 +783,7 @@ function drawFrame(timestamp) {
 
   const spd = (cfg.speed || 50) / 50;
   t += 0.02 * spd * dt; // ~0.00032 per frame at 60fps => 0.02 per second
+  wallTime += dt;       // raw seconds — nova schedule + global drift use this
   warpAccum += spd * dt;
   flashAccum += spd * dt;
   offscreenFrameCount++;
@@ -723,9 +834,23 @@ function drawFrame(timestamp) {
     ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
   }
 
+  /* ─── Global drift: very slow figure-8 pan over ~8 minutes.
+     Subliminal "rotating platform" feel. Applied to all parallax layers below;
+     base/ambience above and vignette/flashes below stay canvas-anchored. ─── */
+  const driftPeriod = 480;  // 8 minutes for full cycle
+  const driftPhase = (wallTime / driftPeriod) * Math.PI * 2;
+  const driftX = Math.sin(driftPhase) * 60;          // ±60px horizontal
+  const driftY = Math.sin(driftPhase * 2) * 22;      // ±22px vertical (figure-8)
+  ctx.save();
+  ctx.translate(driftX, driftY);
+
   /* ═══ LAYER 2: Deep field ═══ */
   deepField.forEach(s => {
-    const tw = 0.7 + 0.3 * Math.sin(t * s.twinkleSpeed * Math.PI * 2 + s.twinkle);
+    // Multi-freq twinkle — same irregular flicker the foreground stars use,
+    // scaled down so the sub-pixel deep field doesn't shimmer too loudly.
+    const sin1 = Math.sin(t * s.twinkleSpeed * Math.PI * 2 + s.twinkle);
+    const sin2 = Math.sin(t * s.twinkleSpeed * 1.73 * Math.PI * 2 + s.twinkle * 1.41);
+    const tw = 0.7 + 0.18 * sin1 + 0.12 * sin2;
     const a = s.alpha * tw;
     if (a < 0.02) return;
     const px = s.x * W, py = s.y * H;
@@ -760,6 +885,17 @@ function drawFrame(timestamp) {
 
   /* ═══ LAYER 4: Background stars ═══ */
   drawStars(starsL0, 0.55);
+
+  /* ═══ Milky Way dust glow — warm haze along the band ═══ */
+  if (milkyWayStars.length > 0 && milkyWayCanvas) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    ctx.drawImage(milkyWayCanvas, 0, 0, W, H);
+    ctx.restore();
+  }
+
+  /* ═══ Milky Way stars — denser band ═══ */
+  if (milkyWayStars.length > 0) drawStars(milkyWayStars, 0.7);
 
   /* ═══ LAYERS 5+6: Nebula (offscreen composite) ═══ */
   if (offscreenFrameCount % 4 === 0 || offscreenFrameCount <= 1) {
@@ -895,6 +1031,102 @@ function drawFrame(timestamp) {
     ctx.restore();
   }
 
+  /* ═══ Rare nova event — celestial flash every 2-3 minutes.
+     Skipped on low-power (no starCount threshold met for the Milky Way). */
+  if (milkyWayStars.length > 0) {  // proxy for "not low-power"
+    if (!activeNova && wallTime > nextNovaAt) {
+      // Spawn near galactic plane 60% of the time, anywhere else 40%
+      const nearBand = Math.random() < 0.6;
+      let nx, ny;
+      if (nearBand) {
+        const u = (Math.random() - 0.5) * 1.2;
+        const v = (Math.random() - 0.5) * 0.06;
+        nx = 0.5 + u * Math.cos(milkyWayAngle) - v * Math.sin(milkyWayAngle);
+        ny = 0.5 + u * Math.sin(milkyWayAngle) + v * Math.cos(milkyWayAngle);
+      } else {
+        nx = 0.08 + Math.random() * 0.84;
+        ny = 0.08 + Math.random() * 0.84;
+      }
+      // Spectral type: usually hot white/blue (A or O/B), occasionally amber (M)
+      const sr = Math.random();
+      const specIdx = sr < 0.55 ? 1 : sr < 0.80 ? 0 : sr < 0.92 ? 2 : 5;
+      activeNova = {
+        x: nx, y: ny,
+        age: 0,
+        peakAge: 1.5,        // seconds to peak
+        maxAge: 8.0,         // total lifespan
+        specIdx,
+        peakR: 14 + Math.random() * 8,    // body radius at peak
+        haloR: 90 + Math.random() * 40,   // halo radius at max
+      };
+    }
+    if (activeNova) {
+      activeNova.age += dt;
+      if (activeNova.age > activeNova.maxAge) {
+        activeNova = null;
+        nextNovaAt = wallTime + 120 + Math.random() * 60;  // 2-3 min until next
+      } else {
+        const n = activeNova;
+        const age = n.age;
+        // Brightness envelope: smooth ramp to peak (1.5s), then long exponential fade
+        let env;
+        if (age < n.peakAge) {
+          const u = age / n.peakAge;
+          env = u * u * (3 - 2 * u);  // smoothstep
+        } else {
+          const u = (age - n.peakAge) / (n.maxAge - n.peakAge);
+          env = Math.pow(1 - u, 1.7);
+        }
+        const px = n.x * W, py = n.y * H;
+        const spec = SPECTRAL[n.specIdx];
+        const rgb = `${spec.r},${spec.g},${spec.b}`;
+        const bodyR = n.peakR * (0.5 + 0.5 * env);
+        const haloR = n.haloR * Math.min(1, age / n.maxAge) * env;
+
+        ctx.save();
+        // Outer halo — expands then fades
+        if (haloR > 4) {
+          const hg = ctx.createRadialGradient(px, py, 0, px, py, haloR);
+          hg.addColorStop(0,    `rgba(${rgb},${(env * 0.32).toFixed(3)})`);
+          hg.addColorStop(0.4,  `rgba(${rgb},${(env * 0.12).toFixed(3)})`);
+          hg.addColorStop(1,    `rgba(${rgb},0)`);
+          ctx.fillStyle = hg;
+          ctx.beginPath(); ctx.arc(px, py, haloR, 0, Math.PI * 2); ctx.fill();
+        }
+        // Bright core
+        const cg = ctx.createRadialGradient(px, py, 0, px, py, bodyR);
+        cg.addColorStop(0,   `rgba(255,255,255,${(env).toFixed(3)})`);
+        cg.addColorStop(0.3, `rgba(${rgb},${(env * 0.95).toFixed(3)})`);
+        cg.addColorStop(1,   `rgba(${rgb},0)`);
+        ctx.fillStyle = cg;
+        ctx.beginPath(); ctx.arc(px, py, bodyR, 0, Math.PI * 2); ctx.fill();
+
+        // Diffraction spikes (4-point) — only near peak, gives that classic nova look
+        if (env > 0.4) {
+          const spikeLen = bodyR * 5 * env;
+          ctx.strokeStyle = `rgba(255,255,255,${(env * 0.75).toFixed(3)})`;
+          ctx.lineWidth = 1.2;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(px - spikeLen, py); ctx.lineTo(px + spikeLen, py);
+          ctx.moveTo(px, py - spikeLen); ctx.lineTo(px, py + spikeLen);
+          ctx.stroke();
+          // Softer diagonal spikes
+          const diag = spikeLen * 0.5;
+          ctx.strokeStyle = `rgba(${rgb},${(env * 0.45).toFixed(3)})`;
+          ctx.beginPath();
+          ctx.moveTo(px - diag, py - diag); ctx.lineTo(px + diag, py + diag);
+          ctx.moveTo(px - diag, py + diag); ctx.lineTo(px + diag, py - diag);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+    }
+  }
+
+  /* ─── end of drift transform ─── */
+  ctx.restore();
+
   /* ═══ LAYER 17: Micro-event flashes — dt-based ═══ */
   flashes = flashes.filter(f => f.alpha > 0.01);
   if (flashes.length > 0) {
@@ -945,9 +1177,16 @@ function drawStars(layerArray, alphaMult) {
 
     const perspective = Math.min(1 / z, 5);
 
-    // Atmospheric scintillation — stars near bottom twinkle more
+    // Atmospheric scintillation — stars near bottom twinkle more.
+    // Multi-frequency sum (2 sines, irrational ratio) → irregular flicker
+    // instead of metronomic pure-sine. Same FLOPS budget, less mechanical feel.
     const scintAmp = 0.15 + 0.35 * (s.scintillation / 2.0);
-    const twinkle = (1 - scintAmp) + scintAmp * Math.sin(t * s.twinkleSpeed * Math.PI * 2 + s.twinklePhase);
+    const f1 = s.twinkleSpeed;
+    const ph1 = s.twinklePhase;
+    const sin1 = Math.sin(t * f1 * Math.PI * 2 + ph1);
+    const sin2 = Math.sin(t * f1 * 1.73 * Math.PI * 2 + ph1 * 1.41);  // beat freq
+    const flicker = 0.65 * sin1 + 0.35 * sin2;  // range ~[-1, 1]
+    const twinkle = (1 - scintAmp) + scintAmp * (0.5 + 0.5 * flicker);
     let a = s.baseAlpha * twinkle * alphaMult;
     if (a < 0.015) continue;
 
@@ -993,6 +1232,19 @@ function drawStars(layerArray, alphaMult) {
     /* Star body */
     ctx.fillStyle = colorAtAlpha(s.specIdx, a);
     ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI*2); ctx.fill();
+
+    /* Atmospheric chromatic shimmer — for bright stars in the lower half
+       of the sky (high y), peaks of the flicker briefly split the star's
+       image into R/B sub-pixel ghosts. Real-world dispersion through
+       atmosphere. Only triggers ~5-10% of frames per qualifying star. */
+    if (s.layer >= 1 && s.baseY > 0.55 && s.baseAlpha > 0.5 && flicker > 0.78) {
+      const shimmerA = a * 0.35 * (flicker - 0.78) / 0.22;  // 0..0.35 ramp
+      const off = 0.7 + r * 0.15;
+      ctx.fillStyle = `rgba(220,110,110,${shimmerA.toFixed(3)})`;
+      ctx.beginPath(); ctx.arc(px - off, py, r, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = `rgba(120,150,230,${shimmerA.toFixed(3)})`;
+      ctx.beginPath(); ctx.arc(px + off, py, r, 0, Math.PI*2); ctx.fill();
+    }
 
     /* 4-point diffraction spikes for brightest stars */
     if (s.r > 1.4 && s.baseAlpha > 0.65 && s.layer >= 1) {
@@ -1076,6 +1328,12 @@ window.bootSpace = function(defaults) {
   initClusters();
   initDarkNebulae();
   initWisps();
+  initMilkyWay();
+  renderMilkyWayGlow();
+  // Schedule first nova 60-120s after boot
+  wallTime = 0;
+  nextNovaAt = 60 + Math.random() * 60;
+  activeNova = null;
   lastFrameTime = 0;
   cancelAnimationFrame(rafHandle);
   rafHandle = requestAnimationFrame(drawFrame);
@@ -1097,6 +1355,7 @@ window.updateSpaceCfg = function(newCfg) {
   if (prev.starCount !== cfg.starCount) {
     initStars(cfg.starCount);
     initDeepField();
+    initMilkyWay();
     createOffscreenCanvases();
   }
 };
