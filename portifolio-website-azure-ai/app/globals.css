@@ -159,12 +159,6 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
   position: relative; z-index: 1; width: 100%;
   text-align: left;
 }
-/* ── Hero text clip-path reveal ── */
-.hero-greeting { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
-.wave { font-size: 32px; animation: wave 2s ease-in-out infinite; display: inline-block; }
-@keyframes wave { 0%,100%{transform:rotate(0)} 25%{transform:rotate(20deg)} 75%{transform:rotate(-20deg)} }
-.intro-text { font-size: 18px; color: var(--gray-400); font-weight: 500; }
-
 .hero-title {
   font-size: clamp(56px, 11vw, 168px);
   font-weight: 800;
