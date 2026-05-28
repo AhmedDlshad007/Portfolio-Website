@@ -20,12 +20,12 @@ No test suite exists. Verification is visual — open the dev server and check b
 
 ## Architecture
 
-### Single Page Component (page.tsx, ~1750 lines)
+### Single Page Component (page.tsx, ~1330 lines)
 
 Everything lives in `app/page.tsx` — a single `"use client"` component containing:
-- All section JSX (hero, marquee, about, skills, experience, projects, contact, footer)
-- Two parallel chat states: `messages`/`setMessages` for the inline contact-section chatbot, and `floatMessages`/`setFloatMessages` for the floating chat panel — both POST to the server-side `/api/chat/` route (the resume context no longer lives here; see Chatbot below)
-- Multiple `useEffect` hooks that wire up: space engine boot, hero animation sequence, magnetic buttons, IntersectionObserver scroll reveals + section warp jumps, skill tag stagger, header scroll state, floating chat open/close
+- All section JSX (hero, about, experience, projects, contact, footer) — note: the Tech Marquee and Skills sections were removed in the Option A redesign; tech list is now a single inline "Current stack" strip inside About
+- A single chat state (`floatMessages`/`setFloatMessages`) for the floating chat panel, which POSTs to the server-side `/api/chat/` route. The previously-duplicated inline-chat state and helpers (`messages`, `sendInline`, `submitForm`, `renderMessage`, `inlineScrollRef`) were removed
+- Multiple `useEffect` hooks that wire up: space engine boot, hero animation sequence, magnetic buttons (now scoped to the floating chat button only), IntersectionObserver scroll reveals + section warp jumps, header scroll state, floating chat open/close
 
 There are no child components. Animations are coordinated through `useRef` handles on elements like `heroNameInnerRef`, `heroSubtitleRef`, etc.
 
@@ -56,14 +56,12 @@ Plays once on mount, runs ~4-5 seconds:
 
 Letters get inline CSS custom properties (`--lx`, `--ly`, `--lr`) for random scatter positions. `name-shimmer` keyframe animates the gradient indefinitely once letters land.
 
-### Per-Section Color Tints (globals.css)
+### Unified Color Identity (globals.css)
 
-The unified purple identity breaks intentionally between sections:
-- Hero, About, Skills, Contact, Footer: purple (`#9333ea` accent)
-- Experience: blue/indigo (`#3b82f6` / `#60a5fa`)
-- Projects: teal/emerald (`#14b8a6` / `#5eead4`)
-
-Implemented as `.experience-section .*` and `.projects-section .*` overrides in globals.css after the base purple styles. The space canvas behind stays the same — only the foreground UI shifts color.
+The site commits to a single purple identity across all sections. The previous per-section blue (Experience) and teal (Projects) foreground re-skins were removed in the Option A redesign. The only color variation now:
+- A blue timeline dot in Experience (one rule: `.experience-section .timeline-dot`) — the single tiny accent that breaks monotony
+- The per-project aurora `--hue` (inline `style` on each `.project-card`, fed into a HSLA radial gradient in `.project-card::before`) — provides intra-section variety within the unified frame
+- The space canvas accent shifts subtly per section via `window.setSpaceAccent(...)` triggered by the scroll observer (purple/blue/teal hint in the starfield), but the foreground UI stays purple
 
 ### Chatbot (Server-Side OpenRouter Proxy)
 
@@ -75,13 +73,15 @@ Key details:
 - **Trailing slash**: because of `trailingSlash: true` in `next.config.js`, the client must fetch `/api/chat/` (with the trailing slash). A POST to `/api/chat` gets a 308 redirect that drops the body.
 - **Failure modes**: route returns 500 if `OPENROUTER_API_KEY` is unset, 502 if OpenRouter itself errors (logged server-side as `OpenRouter request failed:` with status + detail).
 
-Both inline (`messages`) and floating (`floatMessages`) chats use identical fetch logic with separate state. The floating chat panel (`#float-chat-panel`) has its own slide-up animation and a pulsing button (`#float-chat-btn`).
+Only the floating chat panel (`#float-chat-panel` + `#float-chat-btn`) remains; the inline contact-section chatbot was removed in the Option A redesign. The Contact section now has a single "Talk to my AI" CTA button that calls `toggleFloatChat` to open the floating panel.
 
 ### Styling
 
-Pure CSS in `app/globals.css` (~830 lines). No Tailwind classes in markup despite Tailwind being installed. Design system uses CSS custom properties (`--purple-*`, `--dark-*`, `--gradient-*`).
+Pure CSS in `app/globals.css` (~640 lines after the Option A redesign trimmed dead rules). No Tailwind classes in markup despite Tailwind being installed. Design system uses CSS custom properties (`--purple-*`, `--dark-*`, `--gradient-*`).
 
-`app/globals-old.css` is the pre-Claude-Design stylesheet. Not imported anywhere — kept for reference but safe to delete.
+### Typography
+
+Fonts are loaded via `next/font/google` from `app/layout.tsx` — **Archivo** for headings (`var(--font-archivo)`) and **Space Grotesk** for body (`var(--font-space)`). Both are self-hosted by Next.js (no runtime requests to Google), with `display: "swap"` for zero CLS. The CSS variables are applied as classNames on `<html>`.
 
 ### Dual Config Files
 
@@ -105,7 +105,11 @@ Pure CSS in `app/globals.css` (~830 lines). No Tailwind classes in markup despit
 These exist in the code but aren't visually dramatic — touch them only with intent:
 
 - **Scroll-driven 3D depth flight**: Stars carry `z`/`baseZ` coordinates and a perspective multiplier. Scroll position modifies `z` via `scrollDepth`. But the perspective only scales star size/alpha — it doesn't warp position. Earlier iterations did warp position and stars looked like a vortex; that was pulled back. To make scrolling feel like flying through space, apply perspective to `screenX`/`screenY` too, but cap aggressively to avoid the vortex.
-- **Tech marquee**: Renders at `opacity: 0.45` on near-black. The original design reviewer flagged this as invisible. Currently unchanged — either commit to making it legible or remove.
+- **Project tile screenshots/videos deliberately deferred**: The bento layout (`size: "lg" | "wide" | "sm"` per project) is in place but each tile is text-only. Adding a screenshot or short Lottie/MP4 for Companion (the `size-lg` hero tile) was explicitly deferred in the Option A redesign — that's a known next step, not an oversight.
+
+## Nested git repo (heads up)
+
+`portifolio-website-azure-ai/.git` exists as a nested repository inside the main repo. The outer repo at `c:/Users/hero2/Desktop/GAMES/website portifolio/.git` is the canonical one (branch: `redesign/option-a` or `master`). ALWAYS run `git` commands from the outer directory — accidentally `cd`ing into the inner dir and running `git commit` will land the commit on the wrong repo's `master` branch.
 
 ## Key Constraints
 
