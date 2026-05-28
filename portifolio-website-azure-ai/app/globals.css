@@ -411,7 +411,7 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
     radial-gradient(46% 52% at 22% 22%, hsla(var(--hue,170), 90%, 64%, 0.50), transparent 70%),
     radial-gradient(50% 56% at 82% 80%, hsla(calc(var(--hue,170) + 32), 92%, 66%, 0.38), transparent 72%);
   filter: blur(20px);
-  animation: aurora-drift 19s ease-in-out infinite alternate;
+  /* aurora is static at rest; only drifts on hover */
 }
 /* Glass sheen on top + a soft scrim at the bottom for text legibility */
 .project-card::after {
@@ -431,7 +431,7 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
   border-color: rgba(168,85,247,0.45);
   box-shadow: 0 26px 70px rgba(147,51,234,0.20), 0 0 0 1px rgba(147,51,234,0.10);
 }
-.project-card:hover::before { animation-duration: 9s; }
+.project-card:hover::before { animation: aurora-drift 12s ease-in-out infinite alternate; }
 
 /* Big faded index number */
 .project-index {
