@@ -833,7 +833,7 @@ export default function Home() {
                 ref={heroCtaRef}
                 style={{ opacity: 0 }}
               >
-                <a href="#contact" className="button primary magnetic">
+                <a href="#contact" className="button primary">
                   <span>Get In Touch</span>
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path
@@ -847,7 +847,7 @@ export default function Home() {
                 </a>
                 <a
                   href="./Ahmed Dlshad Mohammed - Resume_compressed.pdf"
-                  className="button secondary magnetic"
+                  className="button secondary"
                 >
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path
@@ -1183,7 +1183,7 @@ export default function Home() {
 
                 <button
                   type="button"
-                  className="button primary magnetic contact-cta"
+                  className="button primary contact-cta"
                   onClick={toggleFloatChat}
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -1322,6 +1322,7 @@ export default function Home() {
       {/* ══════════ Floating Chat Button ══════════ */}
       <button
         id="float-chat-btn"
+        className="magnetic"
         aria-label="Open AI Chat"
         onClick={toggleFloatChat}
       >
