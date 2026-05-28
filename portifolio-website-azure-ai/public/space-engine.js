@@ -336,11 +336,14 @@ function initMilkyWay() {
 }
 
 /* Pre-render the Milky Way glow along the band into the offscreen canvas.
-   Two-tone: a cool-violet bright core (suggesting unresolved stars + HII
-   regions) layered with warmer amber dust edges (interstellar dust). The
-   contrast between cool-core and warm-edge is what makes real Milky Way
-   photographs read as "the band" instead of "a haze."
-   Drawn once at init/resize — static gradient. */
+   Composited additively ('lighter') in the main loop, so peak alphas have
+   to be high enough to compete with the central ambience radial (0.55).
+   Three components:
+     • warm amber dust halo across the full thickness
+     • bright cool-violet core down the centerline
+     • 7 soft "star cloud" patches along the band axis — the
+       perceptible "this is a thing" markers that read as denser regions
+   Drawn once at init/resize — static. */
 function renderMilkyWayGlow() {
   if (!milkyWayCtx) return;
   const c = milkyWayCtx;
@@ -354,35 +357,53 @@ function renderMilkyWayGlow() {
   const bandLen = Math.max(nebulaW, nebulaH) * 1.5;
   const bandThick = Math.min(nebulaW, nebulaH) * 0.42;
 
-  // Outer warm dust halo — fills the full thickness, soft amber
+  // Outer warm dust halo — peak alpha 0.30, fills full thickness
   const g1 = c.createLinearGradient(0, -bandThick * 0.5, 0, bandThick * 0.5);
   g1.addColorStop(0,    'rgba(150, 110, 75, 0)');
-  g1.addColorStop(0.25, 'rgba(170, 130, 90, 0.06)');
-  g1.addColorStop(0.5,  'rgba(190, 150, 105, 0.10)');
-  g1.addColorStop(0.75, 'rgba(170, 130, 90, 0.06)');
+  g1.addColorStop(0.25, 'rgba(180, 135, 90, 0.18)');
+  g1.addColorStop(0.5,  'rgba(200, 155, 105, 0.30)');
+  g1.addColorStop(0.75, 'rgba(180, 135, 90, 0.18)');
   g1.addColorStop(1,    'rgba(150, 110, 75, 0)');
   c.fillStyle = g1;
   c.fillRect(-bandLen * 0.5, -bandThick * 0.5, bandLen, bandThick);
 
-  // Bright cool-violet core — narrower, brighter, screen-composited
+  // Bright cool-white core — narrower, peak alpha 0.55
   const coreThick = bandThick * 0.42;
   const g2 = c.createLinearGradient(0, -coreThick * 0.5, 0, coreThick * 0.5);
-  g2.addColorStop(0,   'rgba(180, 190, 230, 0)');
-  g2.addColorStop(0.5, 'rgba(210, 220, 250, 0.16)');
-  g2.addColorStop(1,   'rgba(180, 190, 230, 0)');
-  c.globalCompositeOperation = 'lighter';
+  g2.addColorStop(0,   'rgba(190, 200, 240, 0)');
+  g2.addColorStop(0.5, 'rgba(220, 230, 255, 0.55)');
+  g2.addColorStop(1,   'rgba(190, 200, 240, 0)');
   c.fillStyle = g2;
   c.fillRect(-bandLen * 0.5, -coreThick * 0.5, bandLen, coreThick);
-  c.globalCompositeOperation = 'source-over';
 
-  // Longitudinal density bulge — denser/brighter mid-band, fades at ends
-  // (real galactic centre is brighter than the arms — quick fake of that)
+  // Star-cloud patches: 7 soft round blobs along the axis at varying
+  // brightness and offset. These are the "wait, that's denser" markers
+  // the eye needs to perceive the band as a structure.
+  for (let i = 0; i < 7; i++) {
+    const u = ((i / 6) - 0.5) * 1.35;        // along-band position [-0.675..0.675]
+    const v = (Math.sin(i * 2.7) * 0.06);    // small wobble off-axis (deterministic so reload looks consistent)
+    const cx = u * bandLen * 0.5;
+    const cy = v * bandThick;
+    const r = (0.08 + (i % 3) * 0.035) * Math.min(nebulaW, nebulaH);
+    // Brighter in the middle, dimmer toward the ends
+    const midness = 1 - Math.abs(u) * 1.2;
+    const alpha = Math.max(0.18, 0.55 * midness);
+    const cloud = c.createRadialGradient(cx, cy, 0, cx, cy, r);
+    cloud.addColorStop(0,   `rgba(230, 235, 255, ${alpha.toFixed(3)})`);
+    cloud.addColorStop(0.5, `rgba(210, 195, 170, ${(alpha * 0.4).toFixed(3)})`);
+    cloud.addColorStop(1,   'rgba(180, 150, 110, 0)');
+    c.fillStyle = cloud;
+    c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill();
+  }
+
+  // Longitudinal density bulge — fade the band at the very ends so it
+  // looks like the band is sweeping THROUGH the canvas, not painted on it.
   const g3 = c.createLinearGradient(-bandLen * 0.5, 0, bandLen * 0.5, 0);
-  g3.addColorStop(0,    'rgba(0, 0, 0, 0.55)');
-  g3.addColorStop(0.20, 'rgba(0, 0, 0, 0.15)');
+  g3.addColorStop(0,    'rgba(0, 0, 0, 0.85)');
+  g3.addColorStop(0.15, 'rgba(0, 0, 0, 0.20)');
   g3.addColorStop(0.50, 'rgba(0, 0, 0, 0)');
-  g3.addColorStop(0.80, 'rgba(0, 0, 0, 0.15)');
-  g3.addColorStop(1,    'rgba(0, 0, 0, 0.55)');
+  g3.addColorStop(0.85, 'rgba(0, 0, 0, 0.20)');
+  g3.addColorStop(1,    'rgba(0, 0, 0, 0.85)');
   c.globalCompositeOperation = 'destination-out';
   c.fillStyle = g3;
   c.fillRect(-bandLen * 0.5, -bandThick * 0.5, bandLen, bandThick);
@@ -907,17 +928,6 @@ function drawFrame(timestamp) {
   /* ═══ LAYER 4: Background stars ═══ */
   drawStars(starsL0, 0.55);
 
-  /* ═══ Milky Way dust glow — warm haze along the band ═══ */
-  if (milkyWayStars.length > 0 && milkyWayCanvas) {
-    ctx.save();
-    ctx.globalCompositeOperation = 'screen';
-    ctx.drawImage(milkyWayCanvas, 0, 0, W, H);
-    ctx.restore();
-  }
-
-  /* ═══ Milky Way stars — denser band ═══ */
-  if (milkyWayStars.length > 0) drawStars(milkyWayStars, 0.95);
-
   /* ═══ LAYERS 5+6: Nebula (offscreen composite) ═══ */
   if (offscreenFrameCount % 4 === 0 || offscreenFrameCount <= 1) {
     renderNebulaOffscreen(t);
@@ -926,6 +936,18 @@ function drawFrame(timestamp) {
   ctx.globalCompositeOperation = 'screen';
   ctx.drawImage(nebulaCanvas, 0, 0, W, H);
   ctx.restore();
+
+  /* ═══ Milky Way dust glow — rendered ABOVE the nebula so the cool core +
+     warm dust can actually compete with the indigo ambience radial. ═══ */
+  if (milkyWayStars.length > 0 && milkyWayCanvas) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';  // additive — far brighter than screen
+    ctx.drawImage(milkyWayCanvas, 0, 0, W, H);
+    ctx.restore();
+  }
+
+  /* ═══ Milky Way stars — denser band ═══ */
+  if (milkyWayStars.length > 0) drawStars(milkyWayStars, 1.2);
 
   /* ═══ LAYER 7: Star clusters ═══ */
   ctx.save();
@@ -1074,11 +1096,12 @@ function drawFrame(timestamp) {
       activeNova = {
         x: nx, y: ny,
         age: 0,
-        peakAge: 1.5,        // seconds to peak
-        maxAge: 8.0,         // total lifespan
+        peakAge: 1.8,                                     // seconds to peak
+        maxAge: 12.0,                                     // total lifespan
         specIdx,
-        peakR: 14 + Math.random() * 8,    // body radius at peak
-        haloR: 90 + Math.random() * 40,   // halo radius at max
+        peakR: 32 + Math.random() * 14,                   // body radius at peak (was 14-22)
+        haloR: 280 + Math.random() * 120,                 // halo radius at max (was 90-130)
+        shockMaxR: Math.max(W, H) * (0.4 + Math.random() * 0.2),  // shock ring travels far
       };
     }
     if (activeNova) {
@@ -1089,7 +1112,7 @@ function drawFrame(timestamp) {
       } else {
         const n = activeNova;
         const age = n.age;
-        // Brightness envelope: smooth ramp to peak (1.5s), then long exponential fade
+        // Brightness envelope: smooth ramp to peak (1.8s), then long exponential fade
         let env;
         if (age < n.peakAge) {
           const u = age / n.peakAge;
@@ -1102,39 +1125,73 @@ function drawFrame(timestamp) {
         const spec = SPECTRAL[n.specIdx];
         const rgb = `${spec.r},${spec.g},${spec.b}`;
         const bodyR = n.peakR * (0.5 + 0.5 * env);
-        const haloR = n.haloR * Math.min(1, age / n.maxAge) * env;
+        const haloR = n.haloR * Math.min(1, age / n.maxAge) * Math.max(env, 0.3);
 
         ctx.save();
-        // Outer halo — expands then fades
+
+        // Shock-wave ring — rapidly expands outward, thin bright ring.
+        // This is the "wait, something just happened" telegraph.
+        const shockProgress = Math.min(1, age / 2.5);
+        if (shockProgress < 1 && env > 0.05) {
+          const shockR = n.shockMaxR * shockProgress;
+          const shockAlpha = (1 - shockProgress) * 0.7;
+          const sw = 2.5 + (1 - shockProgress) * 3;
+          ctx.strokeStyle = `rgba(${rgb},${shockAlpha.toFixed(3)})`;
+          ctx.lineWidth = sw;
+          ctx.beginPath(); ctx.arc(px, py, shockR, 0, Math.PI * 2); ctx.stroke();
+          // Inner bright ring for the first ~0.5s
+          if (shockProgress < 0.3) {
+            ctx.strokeStyle = `rgba(255,255,255,${(shockAlpha * 1.2).toFixed(3)})`;
+            ctx.lineWidth = 1.2;
+            ctx.beginPath(); ctx.arc(px, py, shockR * 0.96, 0, Math.PI * 2); ctx.stroke();
+          }
+        }
+
+        // Outer halo — large, slow expansion
         if (haloR > 4) {
           const hg = ctx.createRadialGradient(px, py, 0, px, py, haloR);
-          hg.addColorStop(0,    `rgba(${rgb},${(env * 0.32).toFixed(3)})`);
-          hg.addColorStop(0.4,  `rgba(${rgb},${(env * 0.12).toFixed(3)})`);
+          hg.addColorStop(0,    `rgba(${rgb},${(env * 0.55).toFixed(3)})`);
+          hg.addColorStop(0.25, `rgba(${rgb},${(env * 0.30).toFixed(3)})`);
+          hg.addColorStop(0.6,  `rgba(${rgb},${(env * 0.10).toFixed(3)})`);
           hg.addColorStop(1,    `rgba(${rgb},0)`);
           ctx.fillStyle = hg;
           ctx.beginPath(); ctx.arc(px, py, haloR, 0, Math.PI * 2); ctx.fill();
         }
-        // Bright core
+
+        // Bright core with hot-white center
         const cg = ctx.createRadialGradient(px, py, 0, px, py, bodyR);
-        cg.addColorStop(0,   `rgba(255,255,255,${(env).toFixed(3)})`);
-        cg.addColorStop(0.3, `rgba(${rgb},${(env * 0.95).toFixed(3)})`);
-        cg.addColorStop(1,   `rgba(${rgb},0)`);
+        cg.addColorStop(0,    `rgba(255,255,255,${(Math.min(1, env * 1.2)).toFixed(3)})`);
+        cg.addColorStop(0.18, `rgba(255,255,255,${(env).toFixed(3)})`);
+        cg.addColorStop(0.45, `rgba(${rgb},${(env * 0.92).toFixed(3)})`);
+        cg.addColorStop(1,    `rgba(${rgb},0)`);
         ctx.fillStyle = cg;
         ctx.beginPath(); ctx.arc(px, py, bodyR, 0, Math.PI * 2); ctx.fill();
 
-        // Diffraction spikes (4-point) — only near peak, gives that classic nova look
-        if (env > 0.4) {
-          const spikeLen = bodyR * 5 * env;
-          ctx.strokeStyle = `rgba(255,255,255,${(env * 0.75).toFixed(3)})`;
-          ctx.lineWidth = 1.2;
+        // Diffraction spikes — long, thick, classic 4-point + softer 4-point diagonals
+        if (env > 0.25) {
+          const spikeLen = bodyR * 9 * env;
           ctx.lineCap = 'round';
+          // Primary spikes
+          const grad1 = ctx.createLinearGradient(px - spikeLen, py, px + spikeLen, py);
+          grad1.addColorStop(0,   'rgba(255,255,255,0)');
+          grad1.addColorStop(0.5, `rgba(255,255,255,${(env * 0.95).toFixed(3)})`);
+          grad1.addColorStop(1,   'rgba(255,255,255,0)');
+          ctx.strokeStyle = grad1; ctx.lineWidth = 2.4;
           ctx.beginPath();
           ctx.moveTo(px - spikeLen, py); ctx.lineTo(px + spikeLen, py);
+          ctx.stroke();
+          const grad2 = ctx.createLinearGradient(px, py - spikeLen, px, py + spikeLen);
+          grad2.addColorStop(0,   'rgba(255,255,255,0)');
+          grad2.addColorStop(0.5, `rgba(255,255,255,${(env * 0.95).toFixed(3)})`);
+          grad2.addColorStop(1,   'rgba(255,255,255,0)');
+          ctx.strokeStyle = grad2; ctx.lineWidth = 2.4;
+          ctx.beginPath();
           ctx.moveTo(px, py - spikeLen); ctx.lineTo(px, py + spikeLen);
           ctx.stroke();
           // Softer diagonal spikes
-          const diag = spikeLen * 0.5;
-          ctx.strokeStyle = `rgba(${rgb},${(env * 0.45).toFixed(3)})`;
+          const diag = spikeLen * 0.55;
+          ctx.strokeStyle = `rgba(${rgb},${(env * 0.55).toFixed(3)})`;
+          ctx.lineWidth = 1.4;
           ctx.beginPath();
           ctx.moveTo(px - diag, py - diag); ctx.lineTo(px + diag, py + diag);
           ctx.moveTo(px - diag, py + diag); ctx.lineTo(px + diag, py - diag);
