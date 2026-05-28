@@ -360,21 +360,21 @@ function renderMilkyWayDirect() {
   const bandLen = Math.max(W, H) * 1.6;
   const bandThick = Math.min(W, H) * 0.42;
 
-  // Warm dust halo — full thickness, peak alpha 0.12
+  // Warm dust halo — full thickness, peak alpha 0.06
   const g1 = ctx.createLinearGradient(0, -bandThick * 0.5, 0, bandThick * 0.5);
   g1.addColorStop(0,    'rgba(150, 110, 75, 0)');
-  g1.addColorStop(0.25, 'rgba(180, 135, 90, 0.07)');
-  g1.addColorStop(0.5,  'rgba(195, 150, 105, 0.12)');
-  g1.addColorStop(0.75, 'rgba(180, 135, 90, 0.07)');
+  g1.addColorStop(0.25, 'rgba(180, 135, 90, 0.035)');
+  g1.addColorStop(0.5,  'rgba(195, 150, 105, 0.06)');
+  g1.addColorStop(0.75, 'rgba(180, 135, 90, 0.035)');
   g1.addColorStop(1,    'rgba(150, 110, 75, 0)');
   ctx.fillStyle = g1;
   ctx.fillRect(-bandLen * 0.5, -bandThick * 0.5, bandLen, bandThick);
 
-  // Cool-white core — narrower, peak alpha 0.18
+  // Cool-white core — narrower, peak alpha 0.08
   const coreThick = bandThick * 0.45;
   const g2 = ctx.createLinearGradient(0, -coreThick * 0.5, 0, coreThick * 0.5);
   g2.addColorStop(0,   'rgba(195, 210, 240, 0)');
-  g2.addColorStop(0.5, 'rgba(220, 230, 252, 0.18)');
+  g2.addColorStop(0.5, 'rgba(220, 230, 252, 0.08)');
   g2.addColorStop(1,   'rgba(195, 210, 240, 0)');
   ctx.fillStyle = g2;
   ctx.fillRect(-bandLen * 0.5, -coreThick * 0.5, bandLen, coreThick);
@@ -387,10 +387,10 @@ function renderMilkyWayDirect() {
     const v = Math.sin(i * 2.7) * 0.08;          // deterministic wobble off-axis
     const cx = u * bandLen * 0.5;
     const cy = v * bandThick;
-    const r = (0.09 + (i % 3) * 0.04) * Math.min(W, H);
+    const r = (0.08 + (i % 3) * 0.035) * Math.min(W, H);
     const midness = Math.max(0, 1 - Math.abs(u) * 1.25);
-    const alpha = 0.26 * midness;
-    if (alpha < 0.03) continue;
+    const alpha = 0.13 * midness;
+    if (alpha < 0.02) continue;
     const cloud = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
     cloud.addColorStop(0,    `rgba(230, 235, 255, ${alpha.toFixed(3)})`);
     cloud.addColorStop(0.35, `rgba(215, 200, 170, ${(alpha * 0.55).toFixed(3)})`);
