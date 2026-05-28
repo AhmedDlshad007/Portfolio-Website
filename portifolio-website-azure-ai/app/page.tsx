@@ -749,17 +749,6 @@ export default function Home() {
   }, []);
 
   /* ══════════════════════════════════════════
-     6) SKILL TAG STAGGER
-  ══════════════════════════════════════════ */
-  useEffect(() => {
-    document.querySelectorAll(".skill-category").forEach((card) => {
-      card.querySelectorAll(".skill-tag").forEach((tag, i) => {
-        (tag as HTMLElement).style.setProperty("--tag-i", String(i));
-      });
-    });
-  }, []);
-
-  /* ══════════════════════════════════════════
      7) HEADER SCROLL (glassmorphic state)
   ══════════════════════════════════════════ */
   useEffect(() => {
@@ -883,9 +872,6 @@ export default function Home() {
               </li>
               <li>
                 <a href="#about">About</a>
-              </li>
-              <li>
-                <a href="#skills">Skills</a>
               </li>
               <li>
                 <a href="#experience">Experience</a>
@@ -1146,164 +1132,6 @@ export default function Home() {
                 </div>
               </div>
 
-              <div id="skills" className="skills-grid">
-                {/* Languages */}
-                <div
-                  className="skill-category reveal"
-                  style={{ transitionDelay: "0.1s" }}
-                >
-                  <div className="category-icon">
-                    <svg
-                      width="32"
-                      height="32"
-                      viewBox="0 0 32 32"
-                      fill="none"
-                    >
-                      <path
-                        d="M9 9L4 16L9 23M23 9L28 16L23 23M19 6L13 26"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                  <h3>Languages</h3>
-                  <div className="skill-tags">
-                    <span className="skill-tag">Python</span>
-                    <span className="skill-tag">JavaScript</span>
-                    <span className="skill-tag">TypeScript</span>
-                    <span className="skill-tag">C++</span>
-                    <span className="skill-tag">Java</span>
-                    <span className="skill-tag">HTML5</span>
-                    <span className="skill-tag">CSS3</span>
-                  </div>
-                </div>
-
-                {/* Frameworks */}
-                <div
-                  className="skill-category reveal"
-                  style={{ transitionDelay: "0.2s" }}
-                >
-                  <div className="category-icon">
-                    <svg
-                      width="32"
-                      height="32"
-                      viewBox="0 0 32 32"
-                      fill="none"
-                    >
-                      <path
-                        d="M28 10L16 4L4 10L16 16L28 10Z"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M4 22L16 28L28 22"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M4 16L16 22L28 16"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                  <h3>Frameworks</h3>
-                  <div className="skill-tags">
-                    <span className="skill-tag">React</span>
-                    <span className="skill-tag">Next.js</span>
-                    <span className="skill-tag">Node.js</span>
-                    <span className="skill-tag">Flask</span>
-                    <span className="skill-tag">Tailwind CSS</span>
-                  </div>
-                </div>
-
-                {/* AI / Agents */}
-                <div
-                  className="skill-category reveal"
-                  style={{ transitionDelay: "0.3s" }}
-                >
-                  <div className="category-icon">
-                    <svg
-                      width="32"
-                      height="32"
-                      viewBox="0 0 32 32"
-                      fill="none"
-                    >
-                      <circle cx="16" cy="16" r="3" fill="currentColor" />
-                      <circle
-                        cx="16"
-                        cy="16"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      />
-                      <path
-                        d="M16 6V2M16 30V26M26 16H30M2 16H6M23 9L26 6M6 26L9 23M23 23L26 26M6 6L9 9"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                  </div>
-                  <h3>AI &amp; Agents</h3>
-                  <div className="skill-tags">
-                    <span className="skill-tag">Agentic AI</span>
-                    <span className="skill-tag">MCP</span>
-                    <span className="skill-tag">OpenRouter</span>
-                    <span className="skill-tag">OpenAI API</span>
-                    <span className="skill-tag">Hugging Face</span>
-                    <span className="skill-tag">RAG</span>
-                    <span className="skill-tag">Stable Diffusion</span>
-                  </div>
-                </div>
-
-                {/* Cloud & Tools */}
-                <div
-                  className="skill-category reveal"
-                  style={{ transitionDelay: "0.4s" }}
-                >
-                  <div className="category-icon">
-                    <svg
-                      width="32"
-                      height="32"
-                      viewBox="0 0 32 32"
-                      fill="none"
-                    >
-                      <path
-                        d="M22 18C25.3137 18 28 15.3137 28 12C28 8.68629 25.3137 6 22 6C21.7376 6 21.4789 6.01686 21.2253 6.04955C20.0832 4.21841 18.0508 3 15.7273 3C12.4286 3 9.71429 5.39674 9.20889 8.55556C9.13889 8.55159 9.06806 8.55556 9 8.55556C5.13401 8.55556 2 11.6896 2 15.5556C2 19.4215 5.13401 22.5556 9 22.5556H22"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M14 22L16 26L18 22M16 16V26"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                  <h3>Cloud &amp; Tools</h3>
-                  <div className="skill-tags">
-                    <span className="skill-tag">AWS</span>
-                    <span className="skill-tag">Docker</span>
-                    <span className="skill-tag">Vercel</span>
-                    <span className="skill-tag">Railway</span>
-                    <span className="skill-tag">Git</span>
-                    <span className="skill-tag">GitHub</span>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </section>
@@ -1684,7 +1512,6 @@ export default function Home() {
                   <h4>Navigation</h4>
                   <a href="#home">Home</a>
                   <a href="#about">About</a>
-                  <a href="#skills">Skills</a>
                 </div>
                 <div className="footer-column">
                   <h4>Portfolio</h4>

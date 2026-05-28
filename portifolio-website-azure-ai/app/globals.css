@@ -392,52 +392,6 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
 }
 .stat-card p { color: var(--gray-400); font-size: 14px; margin: 0; }
 
-/* Skills */
-.skills-grid { display: grid; gap: 24px; }
-.skill-category {
-  padding: 32px;
-  background: rgba(3,0,10,0.45);
-  backdrop-filter: blur(16px) saturate(120%);
-  border: 1px solid rgba(147,51,234,0.12);
-  border-radius: 20px;
-  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
-}
-.skill-category:hover {
-  background: rgba(20,5,40,0.6);
-  border-color: rgba(147,51,234,0.35);
-  transform: translateY(-4px);
-  box-shadow: 0 12px 50px rgba(147,51,234,0.15), 0 0 0 1px rgba(147,51,234,0.08);
-}
-.category-icon {
-  width: 64px; height: 64px; border-radius: 16px;
-  background: var(--gradient-purple); display: flex;
-  align-items: center; justify-content: center; margin-bottom: 20px; color: var(--white);
-}
-.skill-category h3 { font-size: 24px; margin-bottom: 20px; }
-.skill-tags { display: flex; flex-wrap: wrap; gap: 10px; }
-
-/* Skill tag — stagger ripple on card hover */
-.skill-tag {
-  padding: 8px 16px; background: rgba(147,51,234,0.1);
-  border: 1px solid rgba(147,51,234,0.3); border-radius: 20px;
-  color: var(--purple-200); font-size: 14px; font-weight: 500;
-  transition: background 0.25s ease, border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
-  transform: translateY(0);
-}
-.skill-category:hover .skill-tag {
-  background: rgba(147,51,234,0.2); border-color: var(--purple-400);
-}
-/* JS will add --tag-i custom property for stagger delay */
-.skill-category:hover .skill-tag {
-  animation: tag-ripple 0.5s ease forwards;
-  animation-delay: calc(var(--tag-i, 0) * 0.06s);
-}
-@keyframes tag-ripple {
-  0%   { transform: translateY(0) scale(1); }
-  40%  { transform: translateY(-6px) scale(1.07); box-shadow: 0 6px 18px rgba(147,51,234,0.35); }
-  100% { transform: translateY(0) scale(1); }
-}
-
 /* ── Experience — fully transparent, floats on space ── */
 .experience-section { background: transparent; }
 .timeline { max-width: 900px; margin: 0 auto; position: relative; }
