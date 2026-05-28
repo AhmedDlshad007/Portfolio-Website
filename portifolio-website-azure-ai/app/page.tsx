@@ -34,15 +34,14 @@ const CURRENT_STACK = [
 
 /* ────────────────────────────────────────────
    Featured projects (Aurora Bento). `hue` tints each card's drifting
-   aurora; `featured` = large 2×2 tile, `wide` = full-width tile.
+   aurora; `size` controls the bento tile footprint.
 ──────────────────────────────────────────── */
 type Project = {
   title: string;
   tags: string[];
   desc: string;
   href?: string;
-  featured?: boolean;
-  wide?: boolean;
+  size: "lg" | "wide" | "sm"; // lg = 2x2 hero, wide = 2x1 banner, sm = 1x1
   badge?: string;
   hue: number;
 };
@@ -52,7 +51,7 @@ const PROJECTS: Project[] = [
     title: "Companion — Agentic AI Desktop Controller",
     tags: ["Agentic AI", "MCP", "OpenRouter", "Python"],
     desc: "AI agent application built on the Model Context Protocol (MCP). Lets AI agents control the browser, access the local file system, manage Gmail, and execute multi-application workflows. Supports any LLM via OpenRouter integration. Currently in active development at BlackCode.",
-    featured: true,
+    size: "lg",
     badge: "Ongoing",
     hue: 168,
   },
@@ -60,41 +59,47 @@ const PROJECTS: Project[] = [
     title: "Wathifa — Job Matching Platform",
     tags: ["Full-Stack", "Stripe API", "AWS"],
     desc: "Comprehensive job-matching platform connecting international job seekers with MENA region employers. Features automated readiness scoring (65% threshold), one-way messaging, an employer dashboard with advanced filtering, secure Stripe payment processing, and AWS cloud storage for resume management.",
-    hue: 150,
+    size: "wide",
+    hue: 280,
   },
   {
     title: "AI-Powered Resume Analyzer",
     tags: ["Flask", "OpenAI", "Python"],
-    desc: "Web application that analyzes resumes against job descriptions using OpenAI GPT-3.5-turbo. Extracts text from PDFs/TXT files, calculates match percentages, identifies missing keywords, and provides tailored improvement suggestions.",
+    desc: "Analyzes resumes against job descriptions using OpenAI GPT-3.5-turbo. Extracts text from PDFs/TXT, calculates match percentages, identifies missing keywords, suggests improvements.",
     href: "https://github.com/AhmedDlshad007/AI-Resume-Analyzer",
+    size: "sm",
     hue: 190,
+  },
+  {
+    title: "Movie Research Assistant (RAG)",
+    tags: ["Python", "Tkinter", "RAG"],
+    desc: "Retrieval Augmented Generation agent that integrates TMDb, OMDb, and YouTube APIs to research movies and TV shows — ratings, release dates, trailers.",
+    href: "https://github.com/AhmedDlshad007/rag_agent_project.git",
+    size: "sm",
+    hue: 220,
   },
   {
     title: "SleepyClock",
     tags: ["HTML5", "CSS3", "JavaScript"],
-    desc: "Sleep cycle calculator to help optimize sleep schedules. Smart sleep calculations, fully responsive design, a dark/light mode toggle, and a mobile-first approach — built with pure vanilla JavaScript.",
+    desc: "Sleep cycle calculator — smart sleep math, fully responsive, dark/light toggle, mobile-first. Pure vanilla JavaScript.",
     href: "https://github.com/AhmedDlshad007/SleepyClock",
+    size: "sm",
     hue: 196,
   },
   {
-    title: "Movie Research Assistant (RAG Agent)",
-    tags: ["Python", "Tkinter", "RAG"],
-    desc: "Python-based Retrieval Augmented Generation agent for researching movies and TV shows. Integrates TMDb, OMDb, and YouTube APIs to fetch comprehensive details, ratings, release dates, and trailers.",
-    href: "https://github.com/AhmedDlshad007/rag_agent_project.git",
-    hue: 172,
-  },
-  {
     title: "Anime Character Generator",
-    tags: ["Next.js", "Stable Diffusion", "AI"],
-    desc: "Web application that generates anime characters from text prompts using Stable Diffusion XL via the Replicate API. Clean, responsive interface built with Next.js and Tailwind CSS — unique character artwork in seconds.",
+    tags: ["Next.js", "Stable Diffusion"],
+    desc: "Generates anime characters from prompts using Stable Diffusion XL via Replicate API. Next.js + Tailwind.",
     href: "https://github.com/AhmedDlshad007/Anime-Character-Generator.git",
+    size: "sm",
     hue: 262,
   },
   {
     title: "AI Image Captioning & Tagging Tool",
     tags: ["React", "TypeScript", "Hugging Face"],
-    desc: "Automatically generates captions and tags for uploaded images using Hugging Face's BLIP model for real-time captioning and ResNet-50 for tagging. Responsive drag-and-drop interface built with React and Vite.",
+    desc: "Automatic image captions and tags using Hugging Face's BLIP for real-time captioning and ResNet-50 for tagging. React + Vite, drag-and-drop UI.",
     href: "https://github.com/AhmedDlshad007/AI-Image-Captioning",
+    size: "wide",
     hue: 158,
   },
 ];
@@ -1119,15 +1124,8 @@ export default function Home() {
               {PROJECTS.map((p, i) => (
                 <article
                   key={p.title}
-                  className={`project-card reveal scale-in${
-                    p.featured ? " featured" : ""
-                  }${p.wide ? " wide" : ""}`}
-                  style={
-                    {
-                      transitionDelay: `${0.05 + i * 0.05}s`,
-                      "--hue": p.hue,
-                    } as React.CSSProperties
-                  }
+                  className={`project-card reveal scale-in size-${p.size}`}
+                  style={{ transitionDelay: `${0.05 + i * 0.05}s`, "--hue": p.hue } as React.CSSProperties}
                 >
                   <span className="project-index" aria-hidden="true">
                     {String(i + 1).padStart(2, "0")}
