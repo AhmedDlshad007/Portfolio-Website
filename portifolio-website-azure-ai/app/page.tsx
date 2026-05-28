@@ -641,7 +641,7 @@ export default function Home() {
           if (window.setSpaceAccent) window.setSpaceAccent(accent);
         }
         const now = performance.now();
-        if (now - lastWarp > 900) {
+        if (now - lastWarp > 2500) {
           lastWarp = now;
           if (window.warpBurst) window.warpBurst(1);
         }
