@@ -12,7 +12,7 @@ All commands run from `portifolio-website-azure-ai/`:
 
 ```bash
 npm run dev          # Dev server with Turbopack (http://localhost:3000)
-npm run build        # Production build (static export to out/)
+npm run build        # Production build (server-rendered, output to .next/)
 npm run lint         # ESLint via Next.js
 ```
 
@@ -36,6 +36,9 @@ Standalone vanilla-JS Canvas2D renderer loaded dynamically from `page.tsx` via a
 Public API (must not break — page.tsx depends on these):
 - `window.bootSpace(cfg)` — initialize and start the render loop
 - `window.updateSpaceCfg(partialCfg)` — live tweaks
+- `window.stopSpace()` — cancel `requestAnimationFrame`, cleanup
+- `window.warpBurst(intensity?)` — trigger a forward "jump" surge (used on section changes)
+- `window.setSpaceAccent(key)` — shift the canvas tint per section (`"purple" | "blue" | "teal"`)
 
 Internal performance architecture:
 - Delta-time animation (frame-rate independent)
@@ -65,7 +68,7 @@ The site commits to a single purple identity across all sections. The previous p
 
 ### Chatbot (Server-Side OpenRouter Proxy)
 
-Both chatbots POST to a server-side route handler at `app/api/chat/route.ts`, which proxies to OpenRouter. The secret `OPENROUTER_API_KEY` stays on the server and never ships in the client bundle, and the request is same-origin so there is no CORS. This is what required dropping static export — the site now needs a Node.js runtime host (Vercel), and `output: 'export'` has been removed from `next.config.js`.
+The floating chatbot POSTs to a server-side route handler at `app/api/chat/route.ts`, which proxies to OpenRouter. The secret `OPENROUTER_API_KEY` stays on the server and never ships in the client bundle, and the request is same-origin so there is no CORS. This is what required dropping static export — the site now needs a Node.js runtime host (Vercel), and `output: 'export'` has been removed from `next.config.js`.
 
 Key details:
 - **Model**: defaults to `anthropic/claude-haiku-4.5` (~$0.002/chat, reliable). Override at runtime via the `OPENROUTER_MODEL` env var — no code change needed (e.g. `google/gemini-2.5-flash` for lower cost). `max_tokens: 350`, `temperature: 0.7`. Avoid `:free` model slugs: their providers frequently return 402/429 regardless of your account balance.
@@ -85,7 +88,7 @@ Fonts are loaded via `next/font/google` from `app/layout.tsx` — **Archivo** fo
 
 ### Dual Config Files
 
-`next.config.js` is the active one (sets `output: 'export'` for static hosting). `next.config.ts` is the default scaffold and is effectively unused.
+`next.config.js` is the active one (no `output: 'export'` — the site is server-rendered on Vercel). `next.config.ts` is the default scaffold and is effectively unused.
 
 ## TypeScript Conventions
 

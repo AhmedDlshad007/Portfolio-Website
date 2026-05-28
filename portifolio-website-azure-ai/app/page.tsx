@@ -470,14 +470,15 @@ export default function Home() {
     /* ── 2. Typewriter subtitle ── */
     const typeDelay = shimmerDelay * 1000 + 200;
 
+    let typeInterval: ReturnType<typeof setInterval> | undefined;
     const typeTimeout = setTimeout(() => {
       subtitleEl.style.opacity = "1";
       let charIdx = 0;
-      const typeInterval = setInterval(() => {
+      typeInterval = setInterval(() => {
         subtitleEl.textContent = subtitleText.slice(0, charIdx + 1);
         charIdx++;
         if (charIdx >= subtitleText.length) {
-          clearInterval(typeInterval);
+          if (typeInterval) clearInterval(typeInterval);
           setTimeout(() => subtitleEl.classList.add("typing-done"), 800);
         }
       }, 38);
@@ -532,6 +533,7 @@ export default function Home() {
       clearTimeout(descTimeout);
       clearTimeout(ctaTimeout);
       clearTimeout(socialTimeout);
+      if (typeInterval) clearInterval(typeInterval);
       if (kfStyle.parentNode) kfStyle.parentNode.removeChild(kfStyle);
     };
   }, []);
@@ -754,7 +756,13 @@ export default function Home() {
                 <a href="#projects">Projects</a>
               </li>
               <li>
-                <a href="#contact">AI Assistant</a>
+                <button
+                  type="button"
+                  className="nav-ai-link"
+                  onClick={toggleFloatChat}
+                >
+                  AI Assistant
+                </button>
               </li>
               <li>
                 <a href="#contact" className="button">
@@ -1336,6 +1344,7 @@ export default function Home() {
         className={floatOpen ? "open" : ""}
         role="dialog"
         aria-label="AI Assistant Chat"
+        aria-modal={floatOpen}
       >
         <div className="float-chat-header">
           <div className="float-chat-header-left">
