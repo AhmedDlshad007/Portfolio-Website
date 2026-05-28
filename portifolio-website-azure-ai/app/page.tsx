@@ -1055,19 +1055,6 @@ export default function Home() {
 
           </div>
 
-          {/* Scroll indicator */}
-          <div className="scroll-indicator">
-            <span style={{ fontSize: "13px" }}>Scroll</span>
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path
-                d="M10 5V15M10 15L5 10M10 15L15 10"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
         </section>
 
         {/* ══════════ About ══════════ */}
