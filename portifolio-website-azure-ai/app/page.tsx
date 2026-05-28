@@ -192,11 +192,9 @@ export default function Home() {
   /* ── state ── */
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [messageInput, setMessageInput] = useState("");
   const [floatMessageInput, setFloatMessageInput] = useState("");
   const [floatOpen, setFloatOpen] = useState(false);
   const [badgeVisible, setBadgeVisible] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
   const [floatLoading, setFloatLoading] = useState(false);
 
   /* ── refs ── */
@@ -205,23 +203,13 @@ export default function Home() {
   const heroDescRef = useRef<HTMLParagraphElement>(null);
   const heroCtaRef = useRef<HTMLDivElement>(null);
   const heroSocialRef = useRef<HTMLDivElement>(null);
-  const inlineScrollRef = useRef<HTMLDivElement>(null);
   const floatMessagesRef = useRef<HTMLDivElement>(null);
 
   /* Note: the assistant's resume context now lives server-side in
      app/api/chat/route.ts — kept out of the client bundle as the single
      source of truth. */
 
-  /* ── messages state (shared by inline + floating chat) ── */
-  const [messages, setMessages] = useState([
-    {
-      id: "initial-msg",
-      role: "assistant",
-      content: "How can I help you learn more about Ahmed and his Resume?",
-    },
-  ]);
-
-  /* ── floating chat has its own messages ── */
+  /* ── floating chat messages ── */
   const [floatMessages, setFloatMessages] = useState([
     {
       id: "float-initial-msg",
@@ -229,89 +217,6 @@ export default function Home() {
       content: "Hi! Ask me anything about Ahmed's skills, experience, or projects!",
     },
   ]);
-
-  /* ══════════════════════════════════════════
-     OpenAI submit — INLINE chat (exact original logic)
-  ══════════════════════════════════════════ */
-  const sendInline = async (text: string) => {
-    const content = text.trim();
-    if (!content || isLoading) return;
-    const newMessages = [
-      ...messages,
-      { id: `user-${Date.now()}`, role: "user", content },
-    ];
-    setMessages(newMessages);
-    setMessageInput("");
-    setIsLoading(true);
-
-    const apiMessages = newMessages.map((msg) => ({
-      role: msg.role === "assistant" ? "assistant" : "user",
-      content: msg.content,
-    }));
-    const assistantId = `assistant-${Date.now()}`;
-
-    try {
-      const response = await fetch("/api/chat/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: apiMessages }),
-      });
-
-      const contentType = response.headers.get("content-type") || "";
-      if (!response.ok || !response.body || contentType.includes("application/json")) {
-        throw new Error("Chat request failed");
-      }
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let acc = "";
-      let started = false;
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        if (!chunk) continue;
-        acc += chunk;
-        if (!started) {
-          started = true;
-          setIsLoading(false); // first token arrived — swap dots for the reply
-        }
-        setMessages([
-          ...newMessages,
-          { id: assistantId, role: "assistant", content: acc },
-        ]);
-      }
-
-      if (!started) {
-        setIsLoading(false);
-        setMessages([
-          ...newMessages,
-          {
-            id: assistantId,
-            role: "assistant",
-            content: "Sorry, I could not process your request.",
-          },
-        ]);
-      }
-    } catch (error) {
-      console.error("Error calling chat API:", error);
-      setIsLoading(false);
-      setMessages([
-        ...newMessages,
-        {
-          id: `error-${Date.now()}`,
-          role: "assistant",
-          content:
-            "Sorry, there was an error processing your request. Please try again later.",
-        },
-      ]);
-    }
-  };
-
-  const submitForm = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    sendInline(messageInput);
-  };
 
   /* ══════════════════════════════════════════
      OpenAI submit — FLOATING chat (parallel state)
@@ -401,12 +306,6 @@ export default function Home() {
   /* ══════════════════════════════════════════
      Auto-scroll chat containers when messages change
   ══════════════════════════════════════════ */
-  useEffect(() => {
-    if (inlineScrollRef.current) {
-      inlineScrollRef.current.scrollTop = inlineScrollRef.current.scrollHeight;
-    }
-  }, [messages, isLoading]);
-
   useEffect(() => {
     if (floatMessagesRef.current) {
       floatMessagesRef.current.scrollTop = floatMessagesRef.current.scrollHeight;
@@ -776,40 +675,6 @@ export default function Home() {
       return next;
     });
   }, []);
-
-  /* ══════════════════════════════════════════
-     Chat message bubble component (inline helper)
-  ══════════════════════════════════════════ */
-  const renderMessage = (msg: { id: string; role: string; content: string }) => (
-    <div key={msg.id} className={`message ${msg.role}`}>
-      <div className="message-avatar">
-        {msg.role === "user" ? (
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        ) : (
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M9.09 9C9.3251 8.33167 9.78915 7.76811 10.4 7.40913C11.0108 7.05016 11.7289 6.91894 12.4272 7.03871C13.1255 7.15849 13.7588 7.52152 14.2151 8.06353C14.6713 8.60553 14.9211 9.29152 14.92 10C14.92 12 11.92 13 11.92 13M12 17H12.01M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        )}
-      </div>
-      <div className="message-content">
-        {msg.role === "assistant" ? formatMessage(msg.content) : <p>{msg.content}</p>}
-      </div>
-    </div>
-  );
 
   /* Typing indicator bubble (shown while awaiting an AI reply) */
   const typingBubble = (
