@@ -1053,22 +1053,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Hero image */}
-            <div
-              className="hero-image reveal from-right"
-              style={{ transitionDelay: "0.3s" }}
-            >
-              <div className="image-wrapper">
-                <div className="glow-effect"></div>
-                <img
-                  src="./imgs/me.jpg"
-                  alt="Ahmed Dlshad"
-                  width={420}
-                  height={420}
-                  fetchPriority="high"
-                />
-              </div>
-            </div>
           </div>
 
           {/* Scroll indicator */}
