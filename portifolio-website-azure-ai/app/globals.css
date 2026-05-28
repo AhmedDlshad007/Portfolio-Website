@@ -159,8 +159,6 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
   position: relative; z-index: 1; width: 100%;
   text-align: left;
 }
-.hero-text { }
-
 /* ── Hero text clip-path reveal ── */
 .hero-greeting { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
 .wave { font-size: 32px; animation: wave 2s ease-in-out infinite; display: inline-block; }
@@ -190,25 +188,8 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
   100%{background-position:-200% 0}
 }
 
-/* ── Hero text ambient aura ── */
-.hero-text {
-  position: relative;
-}
-.hero-text::before {
-  content: '';
-  position: absolute;
-  top: 10%; left: -8%;
-  width: 110%; height: 80%;
-  background: radial-gradient(ellipse at 30% 40%, rgba(217,70,239,0.07) 0%, rgba(147,51,234,0.04) 40%, transparent 70%);
-  filter: blur(40px);
-  pointer-events: none;
-  animation: hero-aura 6s ease-in-out infinite alternate;
-  z-index: -1;
-}
-@keyframes hero-aura {
-  0%   { opacity: 0.6; transform: scale(1)   translateY(0); }
-  100% { opacity: 1.0; transform: scale(1.06) translateY(-10px); }
-}
+/* ── Hero text positioning ── */
+.hero-text { position: relative; }
 
 /* ── Letter assembly animation ── */
 .hero-letter {
