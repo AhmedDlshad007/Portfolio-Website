@@ -39,7 +39,7 @@ let wallTime = 0;  // accumulates raw dt in seconds — used for nova scheduling
    The single biggest "this is real space" cue. Disabled on low-power. */
 let milkyWayAngle = 0;          // radians, fixed per page load
 let milkyWayStars = [];          // additional stars concentrated along band
-let milkyWayCanvas = null, milkyWayCtx = null;
+// Milky Way rendered directly to main canvas — no offscreen cache.
 
 /* Rare nova event — a single bright point that flares + fades. Spawns every
    ~2-3 minutes. The "did you see that?" moment that rewards staying. */
@@ -335,81 +335,69 @@ function initMilkyWay() {
   }
 }
 
-/* Pre-render the Milky Way glow along the band into the offscreen canvas.
-   Composited additively ('lighter') in the main loop, so peak alphas have
-   to be high enough to compete with the central ambience radial (0.55).
+/* Render the Milky Way glow DIRECTLY on the main canvas at full resolution.
+   Earlier attempts used an offscreen canvas at 1/4 resolution with
+   destination-out for longitudinal masking — too lossy, and the masking
+   step erased pixels other layers had drawn. This version paints the band
+   as additive 'lighter' shapes on top of whatever's behind, no offscreen.
+
    Three components:
      • warm amber dust halo across the full thickness
-     • bright cool-violet core down the centerline
-     • 7 soft "star cloud" patches along the band axis — the
-       perceptible "this is a thing" markers that read as denser regions
-   Drawn once at init/resize — static. */
-function renderMilkyWayGlow() {
-  if (!milkyWayCtx) return;
-  const c = milkyWayCtx;
-  c.clearRect(0, 0, nebulaW, nebulaH);
-  if (milkyWayStars.length === 0) return;  // nothing to glow
+     • bright cool-white core down the centerline
+     • 9 soft star-cloud patches along the band axis, brighter in the middle
+   Star-cloud brightness is attenuated by along-band position, replacing
+   the destination-out longitudinal mask the offscreen version used. */
+function renderMilkyWayDirect() {
+  if (milkyWayStars.length === 0) return;
 
-  c.save();
-  c.translate(nebulaW * 0.5, nebulaH * 0.5);
-  c.rotate(milkyWayAngle);
+  ctx.save();
+  ctx.translate(W * 0.5, H * 0.5);
+  ctx.rotate(milkyWayAngle);
+  ctx.globalCompositeOperation = 'lighter';
 
-  const bandLen = Math.max(nebulaW, nebulaH) * 1.5;
-  const bandThick = Math.min(nebulaW, nebulaH) * 0.42;
+  const bandLen = Math.max(W, H) * 1.6;
+  const bandThick = Math.min(W, H) * 0.42;
 
-  // Outer warm dust halo — peak alpha 0.30, fills full thickness
-  const g1 = c.createLinearGradient(0, -bandThick * 0.5, 0, bandThick * 0.5);
+  // Warm dust halo — full thickness, peak alpha 0.18
+  const g1 = ctx.createLinearGradient(0, -bandThick * 0.5, 0, bandThick * 0.5);
   g1.addColorStop(0,    'rgba(150, 110, 75, 0)');
-  g1.addColorStop(0.25, 'rgba(180, 135, 90, 0.18)');
-  g1.addColorStop(0.5,  'rgba(200, 155, 105, 0.30)');
-  g1.addColorStop(0.75, 'rgba(180, 135, 90, 0.18)');
+  g1.addColorStop(0.25, 'rgba(180, 135, 90, 0.10)');
+  g1.addColorStop(0.5,  'rgba(195, 150, 105, 0.18)');
+  g1.addColorStop(0.75, 'rgba(180, 135, 90, 0.10)');
   g1.addColorStop(1,    'rgba(150, 110, 75, 0)');
-  c.fillStyle = g1;
-  c.fillRect(-bandLen * 0.5, -bandThick * 0.5, bandLen, bandThick);
+  ctx.fillStyle = g1;
+  ctx.fillRect(-bandLen * 0.5, -bandThick * 0.5, bandLen, bandThick);
 
-  // Bright cool-white core — narrower, peak alpha 0.55
-  const coreThick = bandThick * 0.42;
-  const g2 = c.createLinearGradient(0, -coreThick * 0.5, 0, coreThick * 0.5);
-  g2.addColorStop(0,   'rgba(190, 200, 240, 0)');
-  g2.addColorStop(0.5, 'rgba(220, 230, 255, 0.55)');
-  g2.addColorStop(1,   'rgba(190, 200, 240, 0)');
-  c.fillStyle = g2;
-  c.fillRect(-bandLen * 0.5, -coreThick * 0.5, bandLen, coreThick);
+  // Cool-white core — narrower, peak alpha 0.30
+  const coreThick = bandThick * 0.45;
+  const g2 = ctx.createLinearGradient(0, -coreThick * 0.5, 0, coreThick * 0.5);
+  g2.addColorStop(0,   'rgba(195, 210, 240, 0)');
+  g2.addColorStop(0.5, 'rgba(220, 232, 255, 0.30)');
+  g2.addColorStop(1,   'rgba(195, 210, 240, 0)');
+  ctx.fillStyle = g2;
+  ctx.fillRect(-bandLen * 0.5, -coreThick * 0.5, bandLen, coreThick);
 
-  // Star-cloud patches: 7 soft round blobs along the axis at varying
-  // brightness and offset. These are the "wait, that's denser" markers
-  // the eye needs to perceive the band as a structure.
-  for (let i = 0; i < 7; i++) {
-    const u = ((i / 6) - 0.5) * 1.35;        // along-band position [-0.675..0.675]
-    const v = (Math.sin(i * 2.7) * 0.06);    // small wobble off-axis (deterministic so reload looks consistent)
+  // Star-cloud patches — bright soft round blobs along the band axis.
+  // Brightness attenuated by along-band distance so the band reads as
+  // brighter in the middle and fades at the ends.
+  for (let i = 0; i < 9; i++) {
+    const u = ((i / 8) - 0.5) * 1.4;            // along-band position [-0.7..0.7]
+    const v = Math.sin(i * 2.7) * 0.08;          // deterministic wobble off-axis
     const cx = u * bandLen * 0.5;
     const cy = v * bandThick;
-    const r = (0.08 + (i % 3) * 0.035) * Math.min(nebulaW, nebulaH);
-    // Brighter in the middle, dimmer toward the ends
-    const midness = 1 - Math.abs(u) * 1.2;
-    const alpha = Math.max(0.18, 0.55 * midness);
-    const cloud = c.createRadialGradient(cx, cy, 0, cx, cy, r);
+    const r = (0.09 + (i % 3) * 0.04) * Math.min(W, H);
+    const midness = Math.max(0, 1 - Math.abs(u) * 1.3);
+    const alpha = 0.42 * midness;
+    if (alpha < 0.03) continue;
+    const cloud = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
     cloud.addColorStop(0,   `rgba(230, 235, 255, ${alpha.toFixed(3)})`);
-    cloud.addColorStop(0.5, `rgba(210, 195, 170, ${(alpha * 0.4).toFixed(3)})`);
+    cloud.addColorStop(0.35, `rgba(215, 200, 170, ${(alpha * 0.5).toFixed(3)})`);
     cloud.addColorStop(1,   'rgba(180, 150, 110, 0)');
-    c.fillStyle = cloud;
-    c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill();
+    ctx.fillStyle = cloud;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
   }
 
-  // Longitudinal density bulge — fade the band at the very ends so it
-  // looks like the band is sweeping THROUGH the canvas, not painted on it.
-  const g3 = c.createLinearGradient(-bandLen * 0.5, 0, bandLen * 0.5, 0);
-  g3.addColorStop(0,    'rgba(0, 0, 0, 0.85)');
-  g3.addColorStop(0.15, 'rgba(0, 0, 0, 0.20)');
-  g3.addColorStop(0.50, 'rgba(0, 0, 0, 0)');
-  g3.addColorStop(0.85, 'rgba(0, 0, 0, 0.20)');
-  g3.addColorStop(1,    'rgba(0, 0, 0, 0.85)');
-  c.globalCompositeOperation = 'destination-out';
-  c.fillStyle = g3;
-  c.fillRect(-bandLen * 0.5, -bandThick * 0.5, bandLen, bandThick);
-  c.globalCompositeOperation = 'source-over';
-
-  c.restore();
+  ctx.restore();
 }
 
 /* ══════════════════════════════════════════════
@@ -610,12 +598,7 @@ function createOffscreenCanvases() {
   dustCanvas.width = nebulaW;
   dustCanvas.height = nebulaH;
   dustCtx = dustCanvas.getContext('2d');
-
-  milkyWayCanvas = document.createElement('canvas');
-  milkyWayCanvas.width = nebulaW;
-  milkyWayCanvas.height = nebulaH;
-  milkyWayCtx = milkyWayCanvas.getContext('2d');
-  renderMilkyWayGlow();  // static — render once, reuse each frame
+  // Milky Way no longer uses an offscreen canvas — rendered directly each frame.
 }
 
 /* Pre-render one radial glow sprite per spectral type (full alpha). Drawn with
@@ -845,11 +828,11 @@ function drawFrame(timestamp) {
     tint.b += (tintTarget.b - tint.b) * k;
   }
 
-  /* Micro-flash events — very rare */
-  if (flashAccum > 1.3 + Math.random() * 3.3) {
-    flashes.push({ x: Math.random()*W, y: Math.random()*H, alpha: 0.4+Math.random()*0.5, r: 2+Math.random()*4, decay: 2.4+Math.random()*1.8 });
-    flashAccum = 0;
-  }
+  /* Micro-flash spawn disabled — the tiny 2-4 px ~0.3 s blips were being
+     mistaken for the nova. The nova is now the only "something happened"
+     event on the canvas. The flash render loop below is kept (no-op when
+     the array is empty) for cleanliness; can be re-enabled by uncommenting.
+     // if (flashAccum > 1.3 + Math.random() * 3.3) { ... } */
 
   /* Mouse velocity & lerp smoothing — dt-based */
   mouseVel.x = targetMouse.x - prevMouse.x;
@@ -937,14 +920,9 @@ function drawFrame(timestamp) {
   ctx.drawImage(nebulaCanvas, 0, 0, W, H);
   ctx.restore();
 
-  /* ═══ Milky Way dust glow — rendered ABOVE the nebula so the cool core +
-     warm dust can actually compete with the indigo ambience radial. ═══ */
-  if (milkyWayStars.length > 0 && milkyWayCanvas) {
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';  // additive — far brighter than screen
-    ctx.drawImage(milkyWayCanvas, 0, 0, W, H);
-    ctx.restore();
-  }
+  /* ═══ Milky Way dust glow — rendered directly to main canvas above the
+     nebula composite so it has full resolution + no compositing weirdness. ═══ */
+  renderMilkyWayDirect();
 
   /* ═══ Milky Way stars — denser band ═══ */
   if (milkyWayStars.length > 0) drawStars(milkyWayStars, 1.2);
@@ -1078,30 +1056,37 @@ function drawFrame(timestamp) {
      Skipped on low-power (no starCount threshold met for the Milky Way). */
   if (milkyWayStars.length > 0) {  // proxy for "not low-power"
     if (!activeNova && wallTime > nextNovaAt) {
-      // Spawn near galactic plane 60% of the time, anywhere else 40%
+      // Spawn near galactic plane 60% of the time, anywhere else 40%.
+      // Constrain to mid-canvas regions so the user never misses it tucked
+      // into a corner. Bias toward right-half / upper-half (text is left-center).
       const nearBand = Math.random() < 0.6;
       let nx, ny;
-      if (nearBand) {
-        const u = (Math.random() - 0.5) * 1.2;
-        const v = (Math.random() - 0.5) * 0.06;
-        nx = 0.5 + u * Math.cos(milkyWayAngle) - v * Math.sin(milkyWayAngle);
-        ny = 0.5 + u * Math.sin(milkyWayAngle) + v * Math.cos(milkyWayAngle);
-      } else {
-        nx = 0.08 + Math.random() * 0.84;
-        ny = 0.08 + Math.random() * 0.84;
-      }
+      let attempts = 0;
+      do {
+        if (nearBand) {
+          const u = (Math.random() - 0.5) * 1.0;
+          const v = (Math.random() - 0.5) * 0.05;
+          nx = 0.5 + u * Math.cos(milkyWayAngle) - v * Math.sin(milkyWayAngle);
+          ny = 0.5 + u * Math.sin(milkyWayAngle) + v * Math.cos(milkyWayAngle);
+        } else {
+          nx = 0.20 + Math.random() * 0.72;
+          ny = 0.15 + Math.random() * 0.65;
+        }
+        attempts++;
+        // Avoid the lower-left content quadrant (rough hero text bounds)
+      } while (attempts < 5 && nx < 0.55 && ny > 0.30 && ny < 0.85);
       // Spectral type: usually hot white/blue (A or O/B), occasionally amber (M)
       const sr = Math.random();
       const specIdx = sr < 0.55 ? 1 : sr < 0.80 ? 0 : sr < 0.92 ? 2 : 5;
       activeNova = {
         x: nx, y: ny,
         age: 0,
-        peakAge: 1.8,                                     // seconds to peak
-        maxAge: 12.0,                                     // total lifespan
+        peakAge: 2.2,                                     // seconds to peak (was 1.8)
+        maxAge: 14.0,                                     // total lifespan (was 12)
         specIdx,
-        peakR: 32 + Math.random() * 14,                   // body radius at peak (was 14-22)
-        haloR: 280 + Math.random() * 120,                 // halo radius at max (was 90-130)
-        shockMaxR: Math.max(W, H) * (0.4 + Math.random() * 0.2),  // shock ring travels far
+        peakR: 55 + Math.random() * 22,                   // body radius at peak (was 32-46)
+        haloR: 420 + Math.random() * 150,                 // halo radius at max (was 280-400)
+        shockMaxR: Math.max(W, H) * (0.55 + Math.random() * 0.25),  // shock ring travels further
       };
     }
     if (activeNova) {
@@ -1407,8 +1392,7 @@ window.bootSpace = function(defaults) {
   initDarkNebulae();
   initWisps();
   initMilkyWay();
-  renderMilkyWayGlow();
-  // Schedule first nova 60-120s after boot
+  // Schedule first nova 25-45s after boot
   wallTime = 0;
   nextNovaAt = 25 + Math.random() * 20;  // first nova lands ~25-45s after boot
   activeNova = null;
