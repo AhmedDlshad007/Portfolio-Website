@@ -294,7 +294,6 @@ function initMilkyWay() {
   // on browsers reporting low hardwareConcurrency/deviceMemory.
   const base = cfg.starCount || 550;
   const N = Math.max(200, Math.floor(base * 0.85));
-  console.log(`[space-engine] Milky Way: ${N} stars at angle ${(milkyWayAngle * 180 / Math.PI).toFixed(1)}° (starCount=${cfg.starCount})`);
   // Tighter perpendicular spread — concentration is the whole point.
   const bandHalfWidth = 0.07;
   const cosA = Math.cos(milkyWayAngle);
@@ -361,21 +360,21 @@ function renderMilkyWayDirect() {
   const bandLen = Math.max(W, H) * 1.6;
   const bandThick = Math.min(W, H) * 0.42;
 
-  // Warm dust halo — full thickness, peak alpha 0.30
+  // Warm dust halo — full thickness, peak alpha 0.12
   const g1 = ctx.createLinearGradient(0, -bandThick * 0.5, 0, bandThick * 0.5);
   g1.addColorStop(0,    'rgba(150, 110, 75, 0)');
-  g1.addColorStop(0.25, 'rgba(190, 140, 95, 0.18)');
-  g1.addColorStop(0.5,  'rgba(205, 160, 110, 0.30)');
-  g1.addColorStop(0.75, 'rgba(190, 140, 95, 0.18)');
+  g1.addColorStop(0.25, 'rgba(180, 135, 90, 0.07)');
+  g1.addColorStop(0.5,  'rgba(195, 150, 105, 0.12)');
+  g1.addColorStop(0.75, 'rgba(180, 135, 90, 0.07)');
   g1.addColorStop(1,    'rgba(150, 110, 75, 0)');
   ctx.fillStyle = g1;
   ctx.fillRect(-bandLen * 0.5, -bandThick * 0.5, bandLen, bandThick);
 
-  // Cool-white core — narrower, peak alpha 0.50
+  // Cool-white core — narrower, peak alpha 0.18
   const coreThick = bandThick * 0.45;
   const g2 = ctx.createLinearGradient(0, -coreThick * 0.5, 0, coreThick * 0.5);
   g2.addColorStop(0,   'rgba(195, 210, 240, 0)');
-  g2.addColorStop(0.5, 'rgba(225, 235, 255, 0.50)');
+  g2.addColorStop(0.5, 'rgba(220, 230, 252, 0.18)');
   g2.addColorStop(1,   'rgba(195, 210, 240, 0)');
   ctx.fillStyle = g2;
   ctx.fillRect(-bandLen * 0.5, -coreThick * 0.5, bandLen, coreThick);
@@ -388,14 +387,13 @@ function renderMilkyWayDirect() {
     const v = Math.sin(i * 2.7) * 0.08;          // deterministic wobble off-axis
     const cx = u * bandLen * 0.5;
     const cy = v * bandThick;
-    const r = (0.12 + (i % 3) * 0.05) * Math.min(W, H);
-    const midness = Math.max(0, 1 - Math.abs(u) * 1.2);
-    const alpha = 0.65 * midness;
-    if (alpha < 0.04) continue;
+    const r = (0.09 + (i % 3) * 0.04) * Math.min(W, H);
+    const midness = Math.max(0, 1 - Math.abs(u) * 1.25);
+    const alpha = 0.26 * midness;
+    if (alpha < 0.03) continue;
     const cloud = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-    cloud.addColorStop(0,    `rgba(235, 240, 255, ${alpha.toFixed(3)})`);
-    cloud.addColorStop(0.30, `rgba(220, 205, 175, ${(alpha * 0.6).toFixed(3)})`);
-    cloud.addColorStop(0.65, `rgba(195, 165, 125, ${(alpha * 0.25).toFixed(3)})`);
+    cloud.addColorStop(0,    `rgba(230, 235, 255, ${alpha.toFixed(3)})`);
+    cloud.addColorStop(0.35, `rgba(215, 200, 170, ${(alpha * 0.55).toFixed(3)})`);
     cloud.addColorStop(1,    'rgba(180, 150, 110, 0)');
     ctx.fillStyle = cloud;
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
@@ -1087,14 +1085,13 @@ function drawFrame(timestamp) {
       activeNova = {
         x: nx, y: ny,
         age: 0,
-        peakAge: 2.2,                                     // seconds to peak (was 1.8)
-        maxAge: 14.0,                                     // total lifespan (was 12)
+        peakAge: 2.0,                                     // seconds to peak
+        maxAge: 13.0,                                     // total lifespan
         specIdx,
-        peakR: 55 + Math.random() * 22,                   // body radius at peak (was 32-46)
-        haloR: 420 + Math.random() * 150,                 // halo radius at max (was 280-400)
-        shockMaxR: Math.max(W, H) * (0.55 + Math.random() * 0.25),  // shock ring travels further
+        peakR: 38 + Math.random() * 14,                   // body radius at peak (~30% smaller)
+        haloR: 280 + Math.random() * 110,                 // halo radius at max (~30% smaller)
+        shockMaxR: Math.max(W, H) * (0.40 + Math.random() * 0.18),  // shock ring travels less
       };
-      console.log(`[space-engine] NOVA spawned at (${(nx*100).toFixed(0)}%, ${(ny*100).toFixed(0)}%) — t=${wallTime.toFixed(1)}s`);
     }
     if (activeNova) {
       activeNova.age += dt;
@@ -1383,7 +1380,6 @@ window.addEventListener('resize', resize);
 ══════════════════════════════════════════════ */
 window.bootSpace = function(defaults) {
   cfg = { ...defaults };
-  console.log('[space-engine v6] bootSpace called with cfg:', cfg);
   initSpectralLUT();
   buildStarGlowSprites();
   tint = { ...ACCENTS.purple };
