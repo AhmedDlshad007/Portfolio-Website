@@ -421,8 +421,8 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
   overflow: hidden;
   min-height: 210px;
   border-radius: 22px;
-  border: 1px solid rgba(45,212,191,0.20);
-  background: rgba(6,22,20,0.22);
+  border: 1px solid rgba(147,51,234,0.20);
+  background: rgba(10,3,22,0.32);
   backdrop-filter: blur(14px) saturate(125%);
   transition: transform 0.4s cubic-bezier(0.23,1,0.32,1), border-color 0.3s ease, box-shadow 0.3s ease;
 }
@@ -455,8 +455,8 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
 
 .project-card:hover {
   transform: translateY(-6px);
-  border-color: rgba(45,212,191,0.5);
-  box-shadow: 0 26px 70px rgba(20,184,166,0.20), 0 0 0 1px rgba(20,184,166,0.10);
+  border-color: rgba(168,85,247,0.45);
+  box-shadow: 0 26px 70px rgba(147,51,234,0.20), 0 0 0 1px rgba(147,51,234,0.10);
 }
 .project-card:hover::before { animation-duration: 9s; }
 
@@ -464,7 +464,7 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
 .project-index {
   position: absolute; top: 16px; right: 22px; z-index: 1;
   font-size: 46px; font-weight: 800; line-height: 1; letter-spacing: -1px;
-  color: rgba(94,234,212,0.16); pointer-events: none;
+  color: rgba(168,85,247,0.18); pointer-events: none;
 }
 .project-card.featured .project-index { font-size: 120px; top: 0; right: 32px; }
 
@@ -487,14 +487,14 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
   align-self: flex-start; margin-bottom: 14px;
   padding: 4px 12px; border-radius: 20px;
   font-size: 11px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase;
-  color: #5eead4; background: rgba(20,184,166,0.18);
-  border: 1px solid rgba(45,212,191,0.3);
+  color: var(--purple-200); background: rgba(147,51,234,0.18);
+  border: 1px solid rgba(147,51,234,0.3);
 }
 .project-tags { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
 .project-tags span {
   padding: 4px 12px; border-radius: 12px;
   font-size: 12px; font-weight: 600;
-  color: #5eead4; background: rgba(20,184,166,0.15);
+  color: var(--purple-200); background: rgba(147,51,234,0.15);
 }
 .project-content h3 { font-size: 21px; margin-bottom: 10px; }
 .project-card.featured .project-content h3 { font-size: 36px; max-width: 16ch; }
@@ -503,10 +503,10 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
 .project-github {
   margin-top: auto; align-self: flex-start;
   display: inline-flex; align-items: center; gap: 6px;
-  color: #2dd4bf; font-weight: 600; font-size: 14px;
+  color: var(--purple-300); font-weight: 600; font-size: 14px;
   transition: color 0.25s ease, transform 0.25s ease;
 }
-.project-github:hover { color: #5eead4; transform: translateX(4px); }
+.project-github:hover { color: var(--purple-200); transform: translateX(4px); }
 
 /* ── Contact ── */
 .contact-section { background: transparent; }
@@ -691,54 +691,13 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
   color: var(--gray-500); font-size: 14px;
 }
 
-/* ── Experience — blue / indigo accent zone ── */
-.experience-section::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: radial-gradient(ellipse 90% 70% at 50% 45%, rgba(29,78,216,0.055) 0%, transparent 68%);
-  pointer-events: none; z-index: -1;
-}
-.experience-section .timeline::before {
-  background: linear-gradient(180deg, transparent 0%, rgba(59,130,246,0.55) 18%, rgba(96,165,250,0.65) 50%, rgba(59,130,246,0.35) 82%, transparent 100%);
-  box-shadow: 0 0 10px rgba(59,130,246,0.25);
-}
+/* Experience — single small blue accent on the timeline dot only */
 .experience-section .timeline-dot {
   background: linear-gradient(135deg, #1d4ed8 0%, #60a5fa 100%);
-  box-shadow: 0 0 20px rgba(59,130,246,0.65);
-}
-.experience-section .timeline-content {
-  background: rgba(4,10,36,0.44);
-  border-color: rgba(59,130,246,0.13);
-}
-.experience-section .timeline-content:hover {
-  background: rgba(8,18,56,0.58);
-  border-color: rgba(96,165,250,0.30);
-  box-shadow: 0 10px 40px rgba(59,130,246,0.13);
-}
-.experience-section .timeline-header h3 { color: #60a5fa; }
-.experience-section .timeline-date {
-  background: rgba(59,130,246,0.18);
-  color: #93c5fd;
-}
-.experience-section .timeline-list li::before { color: #60a5fa; }
-.experience-section .section-title {
-  background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 50%, #93c5fd 100%);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  box-shadow: 0 0 16px rgba(59,130,246,0.55);
 }
 
-/* ── Projects — teal / emerald accent zone ── */
-.projects-section::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: radial-gradient(ellipse 90% 70% at 50% 45%, rgba(6,78,59,0.055) 0%, transparent 68%);
-  pointer-events: none; z-index: -1;
-}
-/* The hero reads a touch more transparent for depth. */
-.projects-section .project-card.featured { background: rgba(6,22,20,0.16); }
-.projects-section .section-title {
-  background: linear-gradient(135deg, #0d9488 0%, #14b8a6 45%, #5eead4 100%);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-}
+/* Projects — base purple chrome; per-card aurora hue lives on --hue var inline */
 
 /* ── Responsive ── */
 @media (max-width: 1024px) {
