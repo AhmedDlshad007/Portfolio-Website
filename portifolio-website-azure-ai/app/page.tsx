@@ -359,17 +359,17 @@ export default function Home() {
       window.matchMedia &&
       (window.matchMedia("(max-width: 768px)").matches ||
         window.matchMedia("(pointer: coarse)").matches);
-    // Detect low-power hardware: <4 logical cores, or <4GB device memory, or "save-data" hint.
-    // navigator.deviceMemory / connection are non-standard but widely supported on mobile Chrome.
+    // Detect *clearly* low-power hardware. We only kick in for devices that
+    // would visibly struggle (<=2 cores, OR <=1GB device memory). Save-Data is
+    // a user signal to download less, not a hardware signal — leaving it out
+    // so a desktop with Save-Data toggled on doesn't lose the animation.
     const nav = typeof navigator !== "undefined" ? navigator : undefined;
     const navWithExtras = nav as Navigator & {
       deviceMemory?: number;
-      connection?: { saveData?: boolean };
     } | undefined;
     const cores = nav?.hardwareConcurrency ?? 8;
     const mem = navWithExtras?.deviceMemory ?? 8;
-    const saveData = !!navWithExtras?.connection?.saveData;
-    const lowPower = cores < 4 || mem < 4 || saveData;
+    const lowPower = cores <= 2 || mem <= 1;
     let freezeTimer: ReturnType<typeof setTimeout> | undefined;
     const script = document.createElement("script");
     script.src = "/space-engine.js";
@@ -377,21 +377,22 @@ export default function Home() {
       if (window.bootSpace) {
         window.bootSpace({
           blobCount: 0,
-          reactivity: reduce || lowPower ? 0 : 75,
-          blurAmount: lowPower ? 0 : 50,
+          reactivity: reduce ? 0 : 75,
+          blurAmount: lowPower ? 20 : 50,
           opacity: 4,
           colorMode: "deep-space",
-          scrollShift: !reduce && !lowPower,
-          rippleOnClick: !reduce && !lowPower,
+          scrollShift: !reduce,
+          rippleOnClick: !reduce,
           gridLines: false,
           speed: 50,
-          starCount: lowPower ? 150 : isMobile ? 300 : 550,
-          deepFieldCount: lowPower ? 600 : isMobile ? 1400 : 4000,
-          showStreaks: !reduce && !lowPower,
-          warpEffect: !reduce && !lowPower,
+          // lowPower keeps animation alive but with fewer stars + lighter blur.
+          starCount: lowPower ? 200 : isMobile ? 300 : 550,
+          deepFieldCount: lowPower ? 800 : isMobile ? 1400 : 4000,
+          showStreaks: !reduce,
+          warpEffect: !reduce,
         });
-        // Reduced motion OR low-power device: let the layered scene build, then freeze to a static starfield.
-        if (reduce || lowPower) {
+        // Only freeze when the OS-level prefers-reduced-motion is set.
+        if (reduce) {
           freezeTimer = setTimeout(() => {
             if (window.stopSpace) window.stopSpace();
           }, 400);
