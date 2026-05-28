@@ -579,13 +579,6 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
   0%,100%{box-shadow:0 6px 30px rgba(147,51,234,0.6),0 0 0 0 rgba(147,51,234,0.4)}
   50%{box-shadow:0 6px 30px rgba(147,51,234,0.6),0 0 0 14px rgba(147,51,234,0)}
 }
-#float-chat-btn .notif-badge {
-  position: absolute; top: -2px; right: -2px; width: 18px; height: 18px;
-  background: var(--fuchsia-500); border-radius: 50%; border: 2px solid var(--black);
-  font-size: 10px; font-weight: 700; color: #fff;
-  display: flex; align-items: center; justify-content: center;
-}
-
 /* ── Floating Chat Panel ── */
 #float-chat-panel {
   position: fixed; bottom: 108px; right: 32px; z-index: 8999;
