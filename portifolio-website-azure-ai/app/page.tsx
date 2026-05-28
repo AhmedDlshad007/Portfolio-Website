@@ -24,6 +24,15 @@ const SUGGESTED_PROMPTS = [
 ];
 
 /* ────────────────────────────────────────────
+   Current stack — one-line inline strip in About.
+   Replaces the deleted Skills cards and Tech Marquee.
+──────────────────────────────────────────── */
+const CURRENT_STACK = [
+  "Python", "TypeScript", "React", "Next.js", "Node.js",
+  "MCP", "OpenRouter", "RAG", "AWS", "Docker", "C++",
+];
+
+/* ────────────────────────────────────────────
    Featured projects (Aurora Bento). `hue` tints each card's drifting
    aurora; `featured` = large 2×2 tile, `wide` = full-width tile.
 ──────────────────────────────────────────── */
@@ -1077,8 +1086,8 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ══════════ About & Skills ══════════ */}
-        <section id="about" className="about-skills-section">
+        {/* ══════════ About ══════════ */}
+        <section id="about" className="about-section">
           <div className="container">
             <div className="section-header reveal">
               <span className="section-label">Get To Know Me</span>
@@ -1086,7 +1095,7 @@ export default function Home() {
             </div>
 
             <div className="about-content">
-              <div className="about-text reveal from-left">
+              <div className="about-text reveal">
                 <h3>Building Where Agentic AI Meets Full-Stack</h3>
                 <p>
                   Hi! I&apos;m Ahmed Dlshad Mohammed, a Full-Stack &amp; Agentic
@@ -1107,31 +1116,32 @@ export default function Home() {
                   driven by problems where good engineering and AI capability
                   combine into something genuinely useful.
                 </p>
+
+                {/* Current stack — inline strip, replaces the removed Skills section */}
+                <div className="about-stack" aria-label="Current technology stack">
+                  <span className="about-stack-label">Current stack</span>
+                  <div className="about-stack-tags">
+                    {CURRENT_STACK.map((tech) => (
+                      <span key={tech} className="about-stack-tag">{tech}</span>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="stats-grid">
-                  <div
-                    className="stat-card reveal"
-                    style={{ transitionDelay: "0.1s" }}
-                  >
+                  <div className="stat-card reveal" style={{ transitionDelay: "0.1s" }}>
                     <h4>2+</h4>
                     <p>Years Experience</p>
                   </div>
-                  <div
-                    className="stat-card reveal"
-                    style={{ transitionDelay: "0.2s" }}
-                  >
+                  <div className="stat-card reveal" style={{ transitionDelay: "0.2s" }}>
                     <h4>7+</h4>
                     <p>Projects Completed</p>
                   </div>
-                  <div
-                    className="stat-card reveal"
-                    style={{ transitionDelay: "0.3s" }}
-                  >
+                  <div className="stat-card reveal" style={{ transitionDelay: "0.3s" }}>
                     <h4>3</h4>
                     <p>Languages</p>
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
         </section>
