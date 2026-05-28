@@ -166,16 +166,24 @@ nav li a.button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba
 .hero-content {
   max-width: 1100px;
   margin: 0 auto;
+  min-width: 0;
   position: relative; z-index: 1; width: 100%;
   text-align: left;
 }
 .hero-title {
-  font-size: clamp(56px, 11vw, 168px);
+  font-size: clamp(40px, 11vw, 168px);
   font-weight: 800;
-  line-height: 0.92;
-  letter-spacing: -0.04em;
+  line-height: 0.95;
+  letter-spacing: -0.035em;
   margin-bottom: 24px;
   overflow: visible;
+  /* word-break: each .hero-word-group below stays atomic; line breaks happen at the space between words */
+  overflow-wrap: normal;
+}
+/* Each word in the assembled name is one no-break unit so the line wraps at the space between words, not at random letters. */
+.hero-word-group {
+  display: inline-block;
+  white-space: nowrap;
 }
 
 /* ── Name highlight shimmer ── */

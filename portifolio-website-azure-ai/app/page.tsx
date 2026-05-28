@@ -401,21 +401,28 @@ export default function Home() {
 
     if (alreadyPlayed) {
       nameEl.innerHTML = "";
-      [...nameText].forEach((ch) => {
-        const span = document.createElement("span");
-        span.className = "hero-letter";
-        span.textContent = ch === " " ? " " : ch;
-        span.style.setProperty("--lx", "0px");
-        span.style.setProperty("--ly", "0px");
-        span.style.setProperty("--lr", "0deg");
-        span.style.background =
-          "linear-gradient(100deg, #9333ea 0%, #d946ef 30%, #e879f9 50%, #d946ef 70%, #9333ea 100%)";
-        span.style.backgroundSize = "200% auto";
-        (span.style as unknown as Record<string, string>).webkitBackgroundClip = "text";
-        (span.style as unknown as Record<string, string>).webkitTextFillColor = "transparent";
-        span.style.backgroundClip = "text";
-        span.style.animation = "letter-assemble-done 0s forwards, name-shimmer 4s linear infinite";
-        nameEl.appendChild(span);
+      const wordsList = nameText.split(" ");
+      wordsList.forEach((word, wi) => {
+        const wordGroup = document.createElement("span");
+        wordGroup.className = "hero-word-group";
+        [...word].forEach((ch) => {
+          const span = document.createElement("span");
+          span.className = "hero-letter";
+          span.textContent = ch;
+          span.style.setProperty("--lx", "0px");
+          span.style.setProperty("--ly", "0px");
+          span.style.setProperty("--lr", "0deg");
+          span.style.background =
+            "linear-gradient(100deg, #9333ea 0%, #d946ef 30%, #e879f9 50%, #d946ef 70%, #9333ea 100%)";
+          span.style.backgroundSize = "200% auto";
+          (span.style as unknown as Record<string, string>).webkitBackgroundClip = "text";
+          (span.style as unknown as Record<string, string>).webkitTextFillColor = "transparent";
+          span.style.backgroundClip = "text";
+          span.style.animation = "letter-assemble-done 0s forwards, name-shimmer 4s linear infinite";
+          wordGroup.appendChild(span);
+        });
+        nameEl.appendChild(wordGroup);
+        if (wi < wordsList.length - 1) nameEl.appendChild(document.createTextNode(" "));
       });
 
       subtitleEl.textContent = subtitleText;
@@ -436,26 +443,35 @@ export default function Home() {
     /* ── 1. Letter assembly for name ── */
     nameEl.innerHTML = "";
 
-    [...nameText].forEach((ch, i) => {
-      const span = document.createElement("span");
-      span.className = "hero-letter";
-      span.textContent = ch === " " ? " " : ch;
-      const angle = Math.random() * Math.PI * 2;
-      const dist = 120 + Math.random() * 220;
-      const lx = Math.cos(angle) * dist;
-      const ly = Math.sin(angle) * dist - 30;
-      const lr = (Math.random() - 0.5) * 60;
-      span.style.setProperty("--lx", lx + "px");
-      span.style.setProperty("--ly", ly + "px");
-      span.style.setProperty("--lr", lr + "deg");
-      span.style.background =
-        "linear-gradient(100deg, #9333ea 0%, #d946ef 30%, #e879f9 50%, #d946ef 70%, #9333ea 100%)";
-      span.style.backgroundSize = "200% auto";
-      (span.style as unknown as Record<string, string>).webkitBackgroundClip = "text";
-      (span.style as unknown as Record<string, string>).webkitTextFillColor = "transparent";
-      span.style.backgroundClip = "text";
-      span.style.animationDelay = (0.08 + i * 0.06) + "s";
-      nameEl.appendChild(span);
+    let letterIdx = 0;
+    const wordList = nameText.split(" ");
+    wordList.forEach((word, wi) => {
+      const wordGroup = document.createElement("span");
+      wordGroup.className = "hero-word-group";
+      [...word].forEach((ch) => {
+        const span = document.createElement("span");
+        span.className = "hero-letter";
+        span.textContent = ch;
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 120 + Math.random() * 220;
+        const lx = Math.cos(angle) * dist;
+        const ly = Math.sin(angle) * dist - 30;
+        const lr = (Math.random() - 0.5) * 60;
+        span.style.setProperty("--lx", lx + "px");
+        span.style.setProperty("--ly", ly + "px");
+        span.style.setProperty("--lr", lr + "deg");
+        span.style.background =
+          "linear-gradient(100deg, #9333ea 0%, #d946ef 30%, #e879f9 50%, #d946ef 70%, #9333ea 100%)";
+        span.style.backgroundSize = "200% auto";
+        (span.style as unknown as Record<string, string>).webkitBackgroundClip = "text";
+        (span.style as unknown as Record<string, string>).webkitTextFillColor = "transparent";
+        span.style.backgroundClip = "text";
+        span.style.animationDelay = (0.08 + letterIdx * 0.06) + "s";
+        wordGroup.appendChild(span);
+        letterIdx++;
+      });
+      nameEl.appendChild(wordGroup);
+      if (wi < wordList.length - 1) nameEl.appendChild(document.createTextNode(" "));
     });
 
     const shimmerDelay = 0.08 + nameText.length * 0.06 + 0.3;
