@@ -239,35 +239,48 @@ nav li a.button:hover { border-color: var(--accent-ice); background: rgba(125,21
   white-space: nowrap;
 }
 
-/* ── Hero name: starlight color + once-per-30s breath ── */
+/* ── Hero name: starlight color + once-per-30s breath ──
+   Visible from the corner of your eye. ~3s peak window with a
+   pronounced glow + faint scale. Rest of the cycle: dimmed to 0.85
+   so the lift to 1.0 reads as deliberate "alive" instead of subtle. */
 .name-highlight {
   color: var(--text-starlight);
+  display: inline-block;          /* transform needs a block context */
+  transform-origin: center;
   animation: name-breath 30s ease-in-out infinite;
+  will-change: opacity, filter, transform;
 }
 @keyframes name-breath {
-  0%, 90%, 100% {
-    opacity: 0.93;
+  0%, 85%, 100% {
+    opacity: 0.85;
+    transform: scale(1);
     filter: drop-shadow(0 0 0 rgba(125,211,252,0));
   }
-  95% {
+  93% {
     opacity: 1;
-    filter: drop-shadow(0 0 18px rgba(125,211,252,0.22));
+    transform: scale(1.008);
+    filter: drop-shadow(0 0 32px rgba(125,211,252,0.45));
   }
 }
 
 /* ── Hero text positioning ── */
 .hero-text { position: relative; }
 
-/* ── Letter assembly animation ── */
+/* ── Letter assembly animation ──
+   Extended to 1.0s with a gentle "exhale" at the end:
+   letters arrive at 70%, micro-overshoot at 82%, then settle.
+   This gives a perceptible handoff into static instead of a snap. */
 .hero-letter {
   display: inline-block;
   opacity: 0;
-  animation: letter-assemble 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: letter-assemble 1.0s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 @keyframes letter-assemble {
   0%   { opacity: 0; transform: translate(var(--lx), var(--ly)) scale(0.4) rotate(var(--lr)); filter: blur(8px); }
-  60%  { opacity: 1; filter: blur(0); }
-  100% { opacity: 1; transform: translate(0,0) scale(1) rotate(0deg); filter: blur(0); }
+  55%  { opacity: 0.92; filter: blur(0.4px); }
+  70%  { opacity: 0.96; transform: translate(0,0) scale(1.012) rotate(0deg); filter: blur(0); }
+  82%  { opacity: 1;    transform: translate(0,0) scale(0.998) rotate(0deg); filter: blur(0); }
+  100% { opacity: 1;    transform: translate(0,0) scale(1) rotate(0deg); filter: blur(0); }
 }
 
 /* ── Typewriter subtitle ── */

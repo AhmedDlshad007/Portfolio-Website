@@ -14,12 +14,10 @@
     10.  Cosmic dust lanes (offscreen, composited 'screen')
     11.  Warp pulses
     12.  Shooting star streaks
-    13.  Mouse trail particles
-    14.  Cursor glow (pre-rendered offscreen)
-    15.  Foreground stars (layer 2) — large, fast parallax
-    16.  Click burst particles
-    17.  Micro-event flashes
-    18.  Edge vignette + top gradient
+    13.  Foreground stars (layer 2) — large, fast parallax
+    14.  Click burst particles
+    15.  Micro-event flashes
+    16.  Edge vignette + top gradient
 ══════════════════════════════════════════════════════ */
 
 const canvas = document.getElementById('bg-canvas');
@@ -370,11 +368,14 @@ function spawnWarpPulse(alpha, speed) {
 let warpVel = 0;
 let warpFlight = 0;
 
-/* Per-section accent tint (lerped each frame) — drives the ambience hue. */
+/* Per-section accent tint (lerped each frame) — drives the ambience hue.
+   Cooled to a unified "deep cool space" palette: all three tints sit
+   on the cold side of indigo so the foreground ice-blue accent reads
+   as part of the same world. Variation is felt, not seen as color jumps. */
 const ACCENTS = {
-  purple: { r: 26, g: 10, b: 52 },
-  blue:   { r: 14, g: 26, b: 74 },
-  teal:   { r: 8,  g: 48, b: 50 },
+  purple: { r: 12, g: 14, b: 46 },  // deep indigo (was warm violet)
+  blue:   { r: 10, g: 22, b: 58 },  // midnight blue (slightly cooler)
+  teal:   { r: 8,  g: 28, b: 52 },  // cold steel-blue (was warm teal)
 };
 let tint = { ...ACCENTS.purple };
 let tintTarget = { ...ACCENTS.purple };
@@ -382,12 +383,6 @@ let tintTarget = { ...ACCENTS.purple };
 /* Pre-rendered star-glow sprites (one per spectral type) + cached vignette. */
 let starGlowSprites = [];
 let vignetteCanvas = null;
-
-/* ══════════════════════════════════════════════
-   MOUSE TRAIL
-══════════════════════════════════════════════ */
-let trailParticles = [];
-const MAX_TRAIL = 50;
 
 /* ══════════════════════════════════════════════
    MICRO-EVENT FLASHES
@@ -451,7 +446,6 @@ function initBlobs(n) {
 ══════════════════════════════════════════════ */
 let nebulaCanvas = null, nebulaCtx = null;
 let dustCanvas = null, dustCtx = null;
-let cursorGlowCanvas = null, cursorGlowCtx = null;
 let nebulaW = 0, nebulaH = 0;
 let offscreenFrameCount = 0;
 
@@ -470,24 +464,6 @@ function createOffscreenCanvases() {
   dustCanvas.width = nebulaW;
   dustCanvas.height = nebulaH;
   dustCtx = dustCanvas.getContext('2d');
-
-  // Cursor glow — 256x256 radial gradient, created once
-  cursorGlowCanvas = document.createElement('canvas');
-  cursorGlowCanvas.width = 256;
-  cursorGlowCanvas.height = 256;
-  cursorGlowCtx = cursorGlowCanvas.getContext('2d');
-  renderCursorGlow();
-}
-
-function renderCursorGlow() {
-  const c = cursorGlowCtx;
-  c.clearRect(0, 0, 256, 256);
-  const g = c.createRadialGradient(128, 128, 0, 128, 128, 128);
-  g.addColorStop(0,   'rgba(110,90,180,0.08)');
-  g.addColorStop(0.5, 'rgba(70,50,140,0.02)');
-  g.addColorStop(1,   'rgba(50,35,110,0)');
-  c.fillStyle = g;
-  c.beginPath(); c.arc(128, 128, 128, 0, Math.PI * 2); c.fill();
 }
 
 /* Pre-render one radial glow sprite per spectral type (full alpha). Drawn with
@@ -729,18 +705,8 @@ function drawFrame(timestamp) {
   const lerpFactor = 1 - Math.pow(0.03, dt); // equivalent to *= 0.94 at 60fps => smooth dt-based lerp
   mouse.x += (targetMouse.x - mouse.x) * lerpFactor;
   mouse.y += (targetMouse.y - mouse.y) * lerpFactor;
-  const vel = Math.sqrt(mouseVel.x**2 + mouseVel.y**2);
   const str = (cfg.reactivity || 75) / 100;
   const scrollP = Math.min(1, scroll / Math.max(1, cachedScrollHeight - H));
-
-  /* Trail particles */
-  if (vel > 0.001 && trailParticles.length < MAX_TRAIL) {
-    trailParticles.push({
-      x: mouse.x*W, y: mouse.y*H,
-      alpha: 0.35+Math.random()*0.25, r: 0.8+Math.random()*1.5,
-      decay: 0.72+Math.random()*0.6, // per second
-    });
-  }
 
   /* ═══ LAYER 1: Base ═══ */
   ctx.fillStyle = '#010004';
@@ -897,30 +863,8 @@ function drawFrame(timestamp) {
     ctx.restore();
   }
 
-  /* ═══ LAYER 13: Mouse trail — dt-based decay ═══ */
-  trailParticles = trailParticles.filter(p => p.alpha > 0.01);
-  if (trailParticles.length > 0) {
-    ctx.save();
-    trailParticles.forEach(p => {
-      p.alpha -= p.decay * dt;
-      const g = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*3);
-      g.addColorStop(0, `rgba(170,165,220,${p.alpha.toFixed(2)})`);
-      g.addColorStop(1, 'rgba(170,165,220,0)');
-      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(p.x,p.y,p.r*3,0,Math.PI*2); ctx.fill();
-    });
-    ctx.restore();
-  }
-
-  /* ═══ LAYER 14: Cursor glow (pre-rendered offscreen) ═══ */
-  {
-    const cx = mouse.x*W, cy = mouse.y*H;
-    const glowSize = Math.max(W,H)*0.16; // draw size
-    ctx.save();
-    ctx.globalAlpha = str;
-    ctx.drawImage(cursorGlowCanvas, cx - glowSize*0.5, cy - glowSize*0.5, glowSize, glowSize);
-    ctx.globalAlpha = 1;
-    ctx.restore();
-  }
+  /* Layers 13 & 14 (mouse trail + cursor glow) removed — direct hover feel,
+     no cursor follower. Mouse position still drives the parallax above. */
 
   /* ═══ LAYER 15: Foreground stars ═══ */
   drawStars(starsL2, 1.0);

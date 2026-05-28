@@ -502,7 +502,9 @@ export default function Home() {
       if (wi < wordList.length - 1) nameEl.appendChild(document.createTextNode(" "));
     });
 
-    const settleDelay = 0.08 + nameText.length * 0.06 + 0.3;
+    /* Letter animation is 1.0s; assembly staggers per-letter at 0.06s.
+       Settle = last-letter-start + animation duration, then a small gap. */
+    const settleDelay = 0.08 + nameText.length * 0.06 + 0.6;
 
     /* After letters land, lock them into the static settled state.
        The parent .name-highlight runs the slow once-per-30s breath. */
@@ -584,54 +586,11 @@ export default function Home() {
   }, []);
 
   /* ══════════════════════════════════════════
-     4) MAGNETIC BUTTONS
+     4) MAGNETIC BUTTONS — removed.
+        The magnetic pull made the button feel "chasable" and
+        delayed perceived hover. Direct hover on the actual
+        element is preferred.
   ══════════════════════════════════════════ */
-  useEffect(() => {
-    const STRENGTH = 0.35;
-    const btns = document.querySelectorAll<HTMLElement>(".magnetic");
-
-    const handlers: Array<{
-      el: HTMLElement;
-      move: (e: MouseEvent) => void;
-      leave: () => void;
-      enter: () => void;
-    }> = [];
-
-    btns.forEach((btn) => {
-      const move = (e: MouseEvent) => {
-        const r = btn.getBoundingClientRect();
-        const cx = r.left + r.width / 2;
-        const cy = r.top + r.height / 2;
-        const dx = (e.clientX - cx) * STRENGTH;
-        const dy = (e.clientY - cy) * STRENGTH;
-        btn.style.transform = `translate(${dx}px, ${dy}px)`;
-      };
-      const leave = () => {
-        btn.style.transition =
-          "transform 0.5s cubic-bezier(0.23,1,0.32,1), box-shadow 0.25s ease";
-        btn.style.transform = "";
-        setTimeout(() => {
-          btn.style.transition = "";
-        }, 500);
-      };
-      const enter = () => {
-        btn.style.transition = "transform 0.15s ease, box-shadow 0.25s ease";
-      };
-
-      btn.addEventListener("mousemove", move);
-      btn.addEventListener("mouseleave", leave);
-      btn.addEventListener("mouseenter", enter);
-      handlers.push({ el: btn, move, leave, enter });
-    });
-
-    return () => {
-      handlers.forEach(({ el, move, leave, enter }) => {
-        el.removeEventListener("mousemove", move);
-        el.removeEventListener("mouseleave", leave);
-        el.removeEventListener("mouseenter", enter);
-      });
-    };
-  }, []);
 
   /* ══════════════════════════════════════════
      5) SCROLL REVEALS (IntersectionObserver)
@@ -1441,7 +1400,6 @@ export default function Home() {
       {/* ══════════ Floating Chat Button ══════════ */}
       <button
         id="float-chat-btn"
-        className="magnetic"
         aria-label="Open AI Chat"
         onClick={toggleFloatChat}
       >
