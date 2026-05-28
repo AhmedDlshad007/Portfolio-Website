@@ -29,3 +29,7 @@ yarn-error.log*
 
 # Vercel
 .vercel
+
+# Design handoff bundles (user iterates on these locally)
+portfolio/
+*.tar.gz
