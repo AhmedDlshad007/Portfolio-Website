@@ -422,7 +422,6 @@ export default function Home() {
     const kfStyle = document.createElement("style");
     kfStyle.textContent = `
       @keyframes fadeInUp { from { opacity:0; transform:translateY(28px); } to { opacity:1; transform:none; } }
-      @keyframes name-shimmer { 0%{background-position:0% center} 100%{background-position:200% center} }
       @keyframes letter-assemble-done { to{opacity:1;transform:none;filter:none;} }
     `;
     document.head.appendChild(kfStyle);
@@ -453,13 +452,7 @@ export default function Home() {
           span.style.setProperty("--lx", "0px");
           span.style.setProperty("--ly", "0px");
           span.style.setProperty("--lr", "0deg");
-          span.style.background =
-            "linear-gradient(100deg, #9333ea 0%, #d946ef 30%, #e879f9 50%, #d946ef 70%, #9333ea 100%)";
-          span.style.backgroundSize = "200% auto";
-          (span.style as unknown as Record<string, string>).webkitBackgroundClip = "text";
-          (span.style as unknown as Record<string, string>).webkitTextFillColor = "transparent";
-          span.style.backgroundClip = "text";
-          span.style.animation = "letter-assemble-done 0s forwards, name-shimmer 4s linear infinite";
+          span.style.animation = "letter-assemble-done 0s forwards";
           wordGroup.appendChild(span);
         });
         nameEl.appendChild(wordGroup);
@@ -501,12 +494,6 @@ export default function Home() {
         span.style.setProperty("--lx", lx + "px");
         span.style.setProperty("--ly", ly + "px");
         span.style.setProperty("--lr", lr + "deg");
-        span.style.background =
-          "linear-gradient(100deg, #9333ea 0%, #d946ef 30%, #e879f9 50%, #d946ef 70%, #9333ea 100%)";
-        span.style.backgroundSize = "200% auto";
-        (span.style as unknown as Record<string, string>).webkitBackgroundClip = "text";
-        (span.style as unknown as Record<string, string>).webkitTextFillColor = "transparent";
-        span.style.backgroundClip = "text";
         span.style.animationDelay = (0.08 + letterIdx * 0.06) + "s";
         wordGroup.appendChild(span);
         letterIdx++;
@@ -515,17 +502,18 @@ export default function Home() {
       if (wi < wordList.length - 1) nameEl.appendChild(document.createTextNode(" "));
     });
 
-    const shimmerDelay = 0.08 + nameText.length * 0.06 + 0.3;
+    const settleDelay = 0.08 + nameText.length * 0.06 + 0.3;
 
-    const shimmerTimeout = setTimeout(() => {
+    /* After letters land, lock them into the static settled state.
+       The parent .name-highlight runs the slow once-per-30s breath. */
+    const settleTimeout = setTimeout(() => {
       nameEl.querySelectorAll(".hero-letter").forEach((span) => {
-        (span as HTMLElement).style.animation =
-          "letter-assemble-done 0s forwards, name-shimmer 4s linear infinite";
+        (span as HTMLElement).style.animation = "letter-assemble-done 0s forwards";
       });
-    }, shimmerDelay * 1000);
+    }, settleDelay * 1000);
 
     /* ── 2. Typewriter subtitle ── */
-    const typeDelay = shimmerDelay * 1000 + 200;
+    const typeDelay = settleDelay * 1000 + 200;
 
     let typeInterval: ReturnType<typeof setInterval> | undefined;
     const typeTimeout = setTimeout(() => {
@@ -585,7 +573,7 @@ export default function Home() {
     }, ctaDelay + 200);
 
     return () => {
-      clearTimeout(shimmerTimeout);
+      clearTimeout(settleTimeout);
       clearTimeout(typeTimeout);
       clearTimeout(descTimeout);
       clearTimeout(ctaTimeout);
@@ -678,7 +666,6 @@ export default function Home() {
     const armTimer = setTimeout(() => {
       armed = true;
     }, 1600);
-    let lastWarp = 0;
     let lastAccent = "purple";
 
     // Map a section to its background accent (mirrors the per-section UI tints).
@@ -702,11 +689,6 @@ export default function Home() {
         if (accent !== lastAccent) {
           lastAccent = accent;
           if (window.setSpaceAccent) window.setSpaceAccent(accent);
-        }
-        const now = performance.now();
-        if (now - lastWarp > 2500) {
-          lastWarp = now;
-          if (window.warpBurst) window.warpBurst(1);
         }
       },
       { threshold: 0.35 }

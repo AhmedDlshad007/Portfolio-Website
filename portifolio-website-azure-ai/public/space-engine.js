@@ -708,9 +708,9 @@ function drawFrame(timestamp) {
   if (warpVel < 0.0008) warpVel = 0;
   warpFlight += warpVel * dt;
 
-  /* Accent tint lerp (per-section color shift) — ~1s ease toward target */
+  /* Accent tint lerp (per-section color shift) — slow ~4s breath toward target */
   {
-    const k = 1 - Math.pow(0.05, dt);
+    const k = 1 - Math.pow(0.5, dt);
     tint.r += (tintTarget.r - tint.r) * k;
     tint.g += (tintTarget.g - tint.g) * k;
     tint.b += (tintTarget.b - tint.b) * k;
