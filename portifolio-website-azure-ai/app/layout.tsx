@@ -1,10 +1,25 @@
 import "./globals.css";
 import type { Metadata } from "next";
+import { Archivo, Space_Grotesk } from "next/font/google";
 
 const SITE_URL = "https://ahmed-dlshad-portfolio.vercel.app";
 const TITLE = "Ahmed Dlshad — Full-Stack & Agentic AI Engineer";
 const DESCRIPTION =
   "Full-Stack & Agentic AI Engineer building React/Next.js and Node.js products and Model Context Protocol (MCP) agent systems — including Companion, an agentic AI desktop controller.";
+
+const archivo = Archivo({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-archivo",
+  display: "swap",
+});
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-space",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -49,15 +64,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet" />
-        {/* Favicon is provided by app/icon.png (Next.js file convention) */}
-      </head>
+    <html lang="en" suppressHydrationWarning className={`${archivo.variable} ${spaceGrotesk.variable}`}>
       <body>{children}</body>
     </html>
   );

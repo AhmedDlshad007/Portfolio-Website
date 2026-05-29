@@ -15,22 +15,6 @@ declare global {
 }
 
 /* ────────────────────────────────────────────
-   Marquee tech list (text spans, repeated for seamless loop)
-──────────────────────────────────────────── */
-const MARQUEE_TECHS = [
-  "Python", "TypeScript", "JavaScript", "React", "Next.js", "Node.js",
-  "Flask", "Tailwind CSS", "MCP", "OpenRouter", "OpenAI API", "Hugging Face",
-  "RAG", "AWS", "Docker", "Vercel", "Git", "C++",
-];
-
-const marqueeSpanStyle: React.CSSProperties = {
-  color: "var(--purple-300)",
-  fontWeight: 700,
-  fontSize: "15px",
-  whiteSpace: "nowrap",
-};
-
-/* ────────────────────────────────────────────
    Suggested chat prompts (shown before the first user message)
 ──────────────────────────────────────────── */
 const SUGGESTED_PROMPTS = [
@@ -40,16 +24,24 @@ const SUGGESTED_PROMPTS = [
 ];
 
 /* ────────────────────────────────────────────
+   Current stack — one-line inline strip in About.
+   Replaces the deleted Skills cards and Tech Marquee.
+──────────────────────────────────────────── */
+const CURRENT_STACK = [
+  "Python", "TypeScript", "React", "Next.js", "Node.js",
+  "MCP", "OpenRouter", "RAG", "AWS", "Docker", "C++",
+];
+
+/* ────────────────────────────────────────────
    Featured projects (Aurora Bento). `hue` tints each card's drifting
-   aurora; `featured` = large 2×2 tile, `wide` = full-width tile.
+   aurora; `size` controls the bento tile footprint.
 ──────────────────────────────────────────── */
 type Project = {
   title: string;
   tags: string[];
   desc: string;
   href?: string;
-  featured?: boolean;
-  wide?: boolean;
+  size: "lg" | "wide" | "sm"; // lg = 2x2 hero, wide = 2x1 banner, sm = 1x1
   badge?: string;
   hue: number;
 };
@@ -59,7 +51,7 @@ const PROJECTS: Project[] = [
     title: "Companion — Agentic AI Desktop Controller",
     tags: ["Agentic AI", "MCP", "OpenRouter", "Python"],
     desc: "AI agent application built on the Model Context Protocol (MCP). Lets AI agents control the browser, access the local file system, manage Gmail, and execute multi-application workflows. Supports any LLM via OpenRouter integration. Currently in active development at BlackCode.",
-    featured: true,
+    size: "lg",
     badge: "Ongoing",
     hue: 168,
   },
@@ -67,41 +59,47 @@ const PROJECTS: Project[] = [
     title: "Wathifa — Job Matching Platform",
     tags: ["Full-Stack", "Stripe API", "AWS"],
     desc: "Comprehensive job-matching platform connecting international job seekers with MENA region employers. Features automated readiness scoring (65% threshold), one-way messaging, an employer dashboard with advanced filtering, secure Stripe payment processing, and AWS cloud storage for resume management.",
-    hue: 150,
+    size: "wide",
+    hue: 280,
   },
   {
     title: "AI-Powered Resume Analyzer",
     tags: ["Flask", "OpenAI", "Python"],
-    desc: "Web application that analyzes resumes against job descriptions using OpenAI GPT-3.5-turbo. Extracts text from PDFs/TXT files, calculates match percentages, identifies missing keywords, and provides tailored improvement suggestions.",
+    desc: "Analyzes resumes against job descriptions using OpenAI GPT-3.5-turbo. Extracts text from PDFs/TXT, calculates match percentages, identifies missing keywords, suggests improvements.",
     href: "https://github.com/AhmedDlshad007/AI-Resume-Analyzer",
+    size: "sm",
     hue: 190,
+  },
+  {
+    title: "Movie Research Assistant (RAG)",
+    tags: ["Python", "Tkinter", "RAG"],
+    desc: "Retrieval Augmented Generation agent that integrates TMDb, OMDb, and YouTube APIs to research movies and TV shows — ratings, release dates, trailers.",
+    href: "https://github.com/AhmedDlshad007/rag_agent_project.git",
+    size: "sm",
+    hue: 220,
   },
   {
     title: "SleepyClock",
     tags: ["HTML5", "CSS3", "JavaScript"],
-    desc: "Sleep cycle calculator to help optimize sleep schedules. Smart sleep calculations, fully responsive design, a dark/light mode toggle, and a mobile-first approach — built with pure vanilla JavaScript.",
+    desc: "Sleep cycle calculator — smart sleep math, fully responsive, dark/light toggle, mobile-first. Pure vanilla JavaScript.",
     href: "https://github.com/AhmedDlshad007/SleepyClock",
+    size: "sm",
     hue: 196,
   },
   {
-    title: "Movie Research Assistant (RAG Agent)",
-    tags: ["Python", "Tkinter", "RAG"],
-    desc: "Python-based Retrieval Augmented Generation agent for researching movies and TV shows. Integrates TMDb, OMDb, and YouTube APIs to fetch comprehensive details, ratings, release dates, and trailers.",
-    href: "https://github.com/AhmedDlshad007/rag_agent_project.git",
-    hue: 172,
-  },
-  {
     title: "Anime Character Generator",
-    tags: ["Next.js", "Stable Diffusion", "AI"],
-    desc: "Web application that generates anime characters from text prompts using Stable Diffusion XL via the Replicate API. Clean, responsive interface built with Next.js and Tailwind CSS — unique character artwork in seconds.",
+    tags: ["Next.js", "Stable Diffusion"],
+    desc: "Generates anime characters from prompts using Stable Diffusion XL via Replicate API. Next.js + Tailwind.",
     href: "https://github.com/AhmedDlshad007/Anime-Character-Generator.git",
+    size: "sm",
     hue: 262,
   },
   {
     title: "AI Image Captioning & Tagging Tool",
     tags: ["React", "TypeScript", "Hugging Face"],
-    desc: "Automatically generates captions and tags for uploaded images using Hugging Face's BLIP model for real-time captioning and ResNet-50 for tagging. Responsive drag-and-drop interface built with React and Vite.",
+    desc: "Automatic image captions and tags using Hugging Face's BLIP for real-time captioning and ResNet-50 for tagging. React + Vite, drag-and-drop UI.",
     href: "https://github.com/AhmedDlshad007/AI-Image-Captioning",
+    size: "wide",
     hue: 158,
   },
 ];
@@ -199,12 +197,10 @@ export default function Home() {
   /* ── state ── */
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [messageInput, setMessageInput] = useState("");
   const [floatMessageInput, setFloatMessageInput] = useState("");
   const [floatOpen, setFloatOpen] = useState(false);
-  const [badgeVisible, setBadgeVisible] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
   const [floatLoading, setFloatLoading] = useState(false);
+  const [emailCopied, setEmailCopied] = useState(false);
 
   /* ── refs ── */
   const heroNameInnerRef = useRef<HTMLSpanElement>(null);
@@ -212,23 +208,15 @@ export default function Home() {
   const heroDescRef = useRef<HTMLParagraphElement>(null);
   const heroCtaRef = useRef<HTMLDivElement>(null);
   const heroSocialRef = useRef<HTMLDivElement>(null);
-  const inlineScrollRef = useRef<HTMLDivElement>(null);
   const floatMessagesRef = useRef<HTMLDivElement>(null);
+  const floatPanelRef = useRef<HTMLDivElement>(null);
+  const floatReturnFocusRef = useRef<HTMLElement | null>(null);
 
   /* Note: the assistant's resume context now lives server-side in
      app/api/chat/route.ts — kept out of the client bundle as the single
      source of truth. */
 
-  /* ── messages state (shared by inline + floating chat) ── */
-  const [messages, setMessages] = useState([
-    {
-      id: "initial-msg",
-      role: "assistant",
-      content: "How can I help you learn more about Ahmed and his Resume?",
-    },
-  ]);
-
-  /* ── floating chat has its own messages ── */
+  /* ── floating chat messages ── */
   const [floatMessages, setFloatMessages] = useState([
     {
       id: "float-initial-msg",
@@ -236,89 +224,6 @@ export default function Home() {
       content: "Hi! Ask me anything about Ahmed's skills, experience, or projects!",
     },
   ]);
-
-  /* ══════════════════════════════════════════
-     OpenAI submit — INLINE chat (exact original logic)
-  ══════════════════════════════════════════ */
-  const sendInline = async (text: string) => {
-    const content = text.trim();
-    if (!content || isLoading) return;
-    const newMessages = [
-      ...messages,
-      { id: `user-${Date.now()}`, role: "user", content },
-    ];
-    setMessages(newMessages);
-    setMessageInput("");
-    setIsLoading(true);
-
-    const apiMessages = newMessages.map((msg) => ({
-      role: msg.role === "assistant" ? "assistant" : "user",
-      content: msg.content,
-    }));
-    const assistantId = `assistant-${Date.now()}`;
-
-    try {
-      const response = await fetch("/api/chat/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: apiMessages }),
-      });
-
-      const contentType = response.headers.get("content-type") || "";
-      if (!response.ok || !response.body || contentType.includes("application/json")) {
-        throw new Error("Chat request failed");
-      }
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let acc = "";
-      let started = false;
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        if (!chunk) continue;
-        acc += chunk;
-        if (!started) {
-          started = true;
-          setIsLoading(false); // first token arrived — swap dots for the reply
-        }
-        setMessages([
-          ...newMessages,
-          { id: assistantId, role: "assistant", content: acc },
-        ]);
-      }
-
-      if (!started) {
-        setIsLoading(false);
-        setMessages([
-          ...newMessages,
-          {
-            id: assistantId,
-            role: "assistant",
-            content: "Sorry, I could not process your request.",
-          },
-        ]);
-      }
-    } catch (error) {
-      console.error("Error calling chat API:", error);
-      setIsLoading(false);
-      setMessages([
-        ...newMessages,
-        {
-          id: `error-${Date.now()}`,
-          role: "assistant",
-          content:
-            "Sorry, there was an error processing your request. Please try again later.",
-        },
-      ]);
-    }
-  };
-
-  const submitForm = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    sendInline(messageInput);
-  };
 
   /* ══════════════════════════════════════════
      OpenAI submit — FLOATING chat (parallel state)
@@ -405,15 +310,35 @@ export default function Home() {
 
   const toggleMobileMenu = () => setMenuOpen(!menuOpen);
 
+  /* Copy email to clipboard with a 1.5s confirmation flash */
+  const copyEmail = useCallback(async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const email = "ahmed.dlshad.m@gmail.com";
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(email);
+      } else {
+        // Fallback for older browsers / non-secure contexts
+        const ta = document.createElement("textarea");
+        ta.value = email;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+      setEmailCopied(true);
+      setTimeout(() => setEmailCopied(false), 1500);
+    } catch {
+      // copy failed silently — user still has the mailto: link
+    }
+  }, []);
+
   /* ══════════════════════════════════════════
      Auto-scroll chat containers when messages change
   ══════════════════════════════════════════ */
-  useEffect(() => {
-    if (inlineScrollRef.current) {
-      inlineScrollRef.current.scrollTop = inlineScrollRef.current.scrollHeight;
-    }
-  }, [messages, isLoading]);
-
   useEffect(() => {
     if (floatMessagesRef.current) {
       floatMessagesRef.current.scrollTop = floatMessagesRef.current.scrollHeight;
@@ -434,6 +359,17 @@ export default function Home() {
       window.matchMedia &&
       (window.matchMedia("(max-width: 768px)").matches ||
         window.matchMedia("(pointer: coarse)").matches);
+    // Detect *clearly* low-power hardware. We only kick in for devices that
+    // would visibly struggle (<=2 cores, OR <=1GB device memory). Save-Data is
+    // a user signal to download less, not a hardware signal — leaving it out
+    // so a desktop with Save-Data toggled on doesn't lose the animation.
+    const nav = typeof navigator !== "undefined" ? navigator : undefined;
+    const navWithExtras = nav as Navigator & {
+      deviceMemory?: number;
+    } | undefined;
+    const cores = nav?.hardwareConcurrency ?? 8;
+    const mem = navWithExtras?.deviceMemory ?? 8;
+    const lowPower = cores <= 2 || mem <= 1;
     let freezeTimer: ReturnType<typeof setTimeout> | undefined;
     const script = document.createElement("script");
     script.src = "/space-engine.js";
@@ -442,19 +378,24 @@ export default function Home() {
         window.bootSpace({
           blobCount: 0,
           reactivity: reduce ? 0 : 75,
-          blurAmount: 50,
+          blurAmount: lowPower ? 20 : 50,
           opacity: 4,
           colorMode: "deep-space",
           scrollShift: !reduce,
           rippleOnClick: !reduce,
           gridLines: false,
           speed: 50,
-          starCount: isMobile ? 300 : 550,
-          deepFieldCount: isMobile ? 1400 : 4000,
+          // lowPower keeps animation alive but with fewer stars + lighter blur.
+          // Floors raised — the previous low-power values produced visible gaps
+          // in the sky on machines that get classified low-power by browser
+          // fingerprint protection (cores<=2). Density is what makes the sky
+          // read as deep space.
+          starCount: lowPower ? 450 : isMobile ? 400 : 650,
+          deepFieldCount: lowPower ? 2500 : isMobile ? 2200 : 5000,
           showStreaks: !reduce,
           warpEffect: !reduce,
         });
-        // Reduced motion: let the layered scene build, then freeze to a static starfield.
+        // Only freeze when the OS-level prefers-reduced-motion is set.
         if (reduce) {
           freezeTimer = setTimeout(() => {
             if (window.stopSpace) window.stopSpace();
@@ -485,7 +426,6 @@ export default function Home() {
     const kfStyle = document.createElement("style");
     kfStyle.textContent = `
       @keyframes fadeInUp { from { opacity:0; transform:translateY(28px); } to { opacity:1; transform:none; } }
-      @keyframes name-shimmer { 0%{background-position:0% center} 100%{background-position:200% center} }
       @keyframes letter-assemble-done { to{opacity:1;transform:none;filter:none;} }
     `;
     document.head.appendChild(kfStyle);
@@ -505,21 +445,22 @@ export default function Home() {
 
     if (alreadyPlayed) {
       nameEl.innerHTML = "";
-      [...nameText].forEach((ch) => {
-        const span = document.createElement("span");
-        span.className = "hero-letter";
-        span.textContent = ch === " " ? " " : ch;
-        span.style.setProperty("--lx", "0px");
-        span.style.setProperty("--ly", "0px");
-        span.style.setProperty("--lr", "0deg");
-        span.style.background =
-          "linear-gradient(100deg, #9333ea 0%, #d946ef 30%, #e879f9 50%, #d946ef 70%, #9333ea 100%)";
-        span.style.backgroundSize = "200% auto";
-        (span.style as unknown as Record<string, string>).webkitBackgroundClip = "text";
-        (span.style as unknown as Record<string, string>).webkitTextFillColor = "transparent";
-        span.style.backgroundClip = "text";
-        span.style.animation = "letter-assemble-done 0s forwards, name-shimmer 4s linear infinite";
-        nameEl.appendChild(span);
+      const wordsList = nameText.split(" ");
+      wordsList.forEach((word, wi) => {
+        const wordGroup = document.createElement("span");
+        wordGroup.className = "hero-word-group";
+        [...word].forEach((ch) => {
+          const span = document.createElement("span");
+          span.className = "hero-letter";
+          span.textContent = ch;
+          span.style.setProperty("--lx", "0px");
+          span.style.setProperty("--ly", "0px");
+          span.style.setProperty("--lr", "0deg");
+          span.style.animation = "letter-assemble-done 0s forwards";
+          wordGroup.appendChild(span);
+        });
+        nameEl.appendChild(wordGroup);
+        if (wi < wordsList.length - 1) nameEl.appendChild(document.createTextNode(" "));
       });
 
       subtitleEl.textContent = subtitleText;
@@ -540,48 +481,55 @@ export default function Home() {
     /* ── 1. Letter assembly for name ── */
     nameEl.innerHTML = "";
 
-    [...nameText].forEach((ch, i) => {
-      const span = document.createElement("span");
-      span.className = "hero-letter";
-      span.textContent = ch === " " ? " " : ch;
-      const angle = Math.random() * Math.PI * 2;
-      const dist = 60 + Math.random() * 120;
-      const lx = Math.cos(angle) * dist;
-      const ly = Math.sin(angle) * dist - 30;
-      const lr = (Math.random() - 0.5) * 60;
-      span.style.setProperty("--lx", lx + "px");
-      span.style.setProperty("--ly", ly + "px");
-      span.style.setProperty("--lr", lr + "deg");
-      span.style.background =
-        "linear-gradient(100deg, #9333ea 0%, #d946ef 30%, #e879f9 50%, #d946ef 70%, #9333ea 100%)";
-      span.style.backgroundSize = "200% auto";
-      (span.style as unknown as Record<string, string>).webkitBackgroundClip = "text";
-      (span.style as unknown as Record<string, string>).webkitTextFillColor = "transparent";
-      span.style.backgroundClip = "text";
-      span.style.animationDelay = (0.08 + i * 0.06) + "s";
-      nameEl.appendChild(span);
+    let letterIdx = 0;
+    const wordList = nameText.split(" ");
+    wordList.forEach((word, wi) => {
+      const wordGroup = document.createElement("span");
+      wordGroup.className = "hero-word-group";
+      [...word].forEach((ch) => {
+        const span = document.createElement("span");
+        span.className = "hero-letter";
+        span.textContent = ch;
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 120 + Math.random() * 220;
+        const lx = Math.cos(angle) * dist;
+        const ly = Math.sin(angle) * dist - 30;
+        const lr = (Math.random() - 0.5) * 60;
+        span.style.setProperty("--lx", lx + "px");
+        span.style.setProperty("--ly", ly + "px");
+        span.style.setProperty("--lr", lr + "deg");
+        span.style.animationDelay = (0.08 + letterIdx * 0.06) + "s";
+        wordGroup.appendChild(span);
+        letterIdx++;
+      });
+      nameEl.appendChild(wordGroup);
+      if (wi < wordList.length - 1) nameEl.appendChild(document.createTextNode(" "));
     });
 
-    const shimmerDelay = 0.08 + nameText.length * 0.06 + 0.3;
+    /* Letter animation is 1.0s; assembly staggers per-letter at 0.06s.
+       Settle = last-letter-start + animation duration, then a small gap. */
+    const settleDelay = 0.08 + nameText.length * 0.06 + 0.6;
 
-    const shimmerTimeout = setTimeout(() => {
+    /* After letters land, lock them into the static settled state.
+       The parent .name-highlight runs the slow once-per-30s breath. */
+    const settleTimeout = setTimeout(() => {
       nameEl.querySelectorAll(".hero-letter").forEach((span) => {
-        (span as HTMLElement).style.animation =
-          "letter-assemble-done 0s forwards, name-shimmer 4s linear infinite";
+        (span as HTMLElement).style.animation = "letter-assemble-done 0s forwards";
       });
-    }, shimmerDelay * 1000);
+    }, settleDelay * 1000);
 
     /* ── 2. Typewriter subtitle ── */
-    const typeDelay = shimmerDelay * 1000 + 200;
+    const typeDelay = settleDelay * 1000 + 200;
 
+    let typeInterval: ReturnType<typeof setInterval> | undefined;
     const typeTimeout = setTimeout(() => {
       subtitleEl.style.opacity = "1";
       let charIdx = 0;
-      const typeInterval = setInterval(() => {
+      typeInterval = setInterval(() => {
         subtitleEl.textContent = subtitleText.slice(0, charIdx + 1);
         charIdx++;
         if (charIdx >= subtitleText.length) {
-          clearInterval(typeInterval);
+          if (typeInterval) clearInterval(typeInterval);
           setTimeout(() => subtitleEl.classList.add("typing-done"), 800);
         }
       }, 38);
@@ -631,64 +579,22 @@ export default function Home() {
     }, ctaDelay + 200);
 
     return () => {
-      clearTimeout(shimmerTimeout);
+      clearTimeout(settleTimeout);
       clearTimeout(typeTimeout);
       clearTimeout(descTimeout);
       clearTimeout(ctaTimeout);
       clearTimeout(socialTimeout);
+      if (typeInterval) clearInterval(typeInterval);
       if (kfStyle.parentNode) kfStyle.parentNode.removeChild(kfStyle);
     };
   }, []);
 
   /* ══════════════════════════════════════════
-     4) MAGNETIC BUTTONS
+     4) MAGNETIC BUTTONS — removed.
+        The magnetic pull made the button feel "chasable" and
+        delayed perceived hover. Direct hover on the actual
+        element is preferred.
   ══════════════════════════════════════════ */
-  useEffect(() => {
-    const STRENGTH = 0.35;
-    const btns = document.querySelectorAll<HTMLElement>(".magnetic");
-
-    const handlers: Array<{
-      el: HTMLElement;
-      move: (e: MouseEvent) => void;
-      leave: () => void;
-      enter: () => void;
-    }> = [];
-
-    btns.forEach((btn) => {
-      const move = (e: MouseEvent) => {
-        const r = btn.getBoundingClientRect();
-        const cx = r.left + r.width / 2;
-        const cy = r.top + r.height / 2;
-        const dx = (e.clientX - cx) * STRENGTH;
-        const dy = (e.clientY - cy) * STRENGTH;
-        btn.style.transform = `translate(${dx}px, ${dy}px)`;
-      };
-      const leave = () => {
-        btn.style.transition =
-          "transform 0.5s cubic-bezier(0.23,1,0.32,1), box-shadow 0.25s ease";
-        btn.style.transform = "";
-        setTimeout(() => {
-          btn.style.transition = "";
-        }, 500);
-      };
-      const enter = () => {
-        btn.style.transition = "transform 0.15s ease, box-shadow 0.25s ease";
-      };
-
-      btn.addEventListener("mousemove", move);
-      btn.addEventListener("mouseleave", leave);
-      btn.addEventListener("mouseenter", enter);
-      handlers.push({ el: btn, move, leave, enter });
-    });
-
-    return () => {
-      handlers.forEach(({ el, move, leave, enter }) => {
-        el.removeEventListener("mousemove", move);
-        el.removeEventListener("mouseleave", leave);
-        el.removeEventListener("mouseenter", enter);
-      });
-    };
-  }, []);
 
   /* ══════════════════════════════════════════
      5) SCROLL REVEALS (IntersectionObserver)
@@ -723,7 +629,6 @@ export default function Home() {
     const armTimer = setTimeout(() => {
       armed = true;
     }, 1600);
-    let lastWarp = 0;
     let lastAccent = "purple";
 
     // Map a section to its background accent (mirrors the per-section UI tints).
@@ -748,11 +653,6 @@ export default function Home() {
           lastAccent = accent;
           if (window.setSpaceAccent) window.setSpaceAccent(accent);
         }
-        const now = performance.now();
-        if (now - lastWarp > 900) {
-          lastWarp = now;
-          if (window.warpBurst) window.warpBurst(1);
-        }
       },
       { threshold: 0.35 }
     );
@@ -762,17 +662,6 @@ export default function Home() {
       clearTimeout(armTimer);
       observer.disconnect();
     };
-  }, []);
-
-  /* ══════════════════════════════════════════
-     6) SKILL TAG STAGGER
-  ══════════════════════════════════════════ */
-  useEffect(() => {
-    document.querySelectorAll(".skill-category").forEach((card) => {
-      card.querySelectorAll(".skill-tag").forEach((tag, i) => {
-        (tag as HTMLElement).style.setProperty("--tag-i", String(i));
-      });
-    });
   }, []);
 
   /* ══════════════════════════════════════════
@@ -789,45 +678,65 @@ export default function Home() {
   ══════════════════════════════════════════ */
   const toggleFloatChat = useCallback(() => {
     setFloatOpen((prev) => {
-      const next = !prev;
-      if (next) setBadgeVisible(false);
-      return next;
+      if (!prev) {
+        // remember the element that opened the dialog so we can restore focus on close
+        floatReturnFocusRef.current =
+          (document.activeElement as HTMLElement) || null;
+      }
+      return !prev;
     });
   }, []);
 
   /* ══════════════════════════════════════════
-     Chat message bubble component (inline helper)
+     Floating Chat: ESC to close + focus trap + restore focus
   ══════════════════════════════════════════ */
-  const renderMessage = (msg: { id: string; role: string; content: string }) => (
-    <div key={msg.id} className={`message ${msg.role}`}>
-      <div className="message-avatar">
-        {msg.role === "user" ? (
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        ) : (
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M9.09 9C9.3251 8.33167 9.78915 7.76811 10.4 7.40913C11.0108 7.05016 11.7289 6.91894 12.4272 7.03871C13.1255 7.15849 13.7588 7.52152 14.2151 8.06353C14.6713 8.60553 14.9211 9.29152 14.92 10C14.92 12 11.92 13 11.92 13M12 17H12.01M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        )}
-      </div>
-      <div className="message-content">
-        {msg.role === "assistant" ? formatMessage(msg.content) : <p>{msg.content}</p>}
-      </div>
-    </div>
-  );
+  useEffect(() => {
+    if (!floatOpen) return;
+    const panel = floatPanelRef.current;
+    if (!panel) return;
+
+    // Move focus into the dialog on open (first focusable element, or the panel itself)
+    const focusables = () =>
+      Array.from(
+        panel.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((el) => !el.hasAttribute("aria-hidden"));
+
+    const first = focusables()[0];
+    if (first) first.focus();
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setFloatOpen(false);
+        return;
+      }
+      if (e.key === "Tab") {
+        const f = focusables();
+        if (f.length === 0) return;
+        const firstEl = f[0];
+        const lastEl = f[f.length - 1];
+        const active = document.activeElement as HTMLElement | null;
+        if (e.shiftKey && active === firstEl) {
+          e.preventDefault();
+          lastEl.focus();
+        } else if (!e.shiftKey && active === lastEl) {
+          e.preventDefault();
+          firstEl.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      // restore focus to the element that opened the dialog
+      const ret = floatReturnFocusRef.current;
+      if (ret && typeof ret.focus === "function") {
+        ret.focus();
+      }
+    };
+  }, [floatOpen]);
 
   /* Typing indicator bubble (shown while awaiting an AI reply) */
   const typingBubble = (
@@ -885,6 +794,9 @@ export default function Home() {
         }}
       />
 
+      {/* Skip link — visible on keyboard focus only */}
+      <a href="#main-content" className="skip-link">Skip to content</a>
+
       {/* ── Header ── */}
       <header id="site-header" className={scrolled ? "scrolled" : ""}>
         <div className="header-content">
@@ -901,16 +813,19 @@ export default function Home() {
                 <a href="#about">About</a>
               </li>
               <li>
-                <a href="#skills">Skills</a>
-              </li>
-              <li>
                 <a href="#experience">Experience</a>
               </li>
               <li>
                 <a href="#projects">Projects</a>
               </li>
               <li>
-                <a href="#contact">AI Assistant</a>
+                <button
+                  type="button"
+                  className="nav-ai-link"
+                  onClick={toggleFloatChat}
+                >
+                  AI Assistant
+                </button>
               </li>
               <li>
                 <a href="#contact" className="button">
@@ -941,7 +856,7 @@ export default function Home() {
         </div>
       </header>
 
-      <main>
+      <main id="main-content">
         {/* ══════════ Hero Section ══════════ */}
         <section id="home" className="hero-modern">
           <div className="hero-content">
@@ -989,7 +904,7 @@ export default function Home() {
                 ref={heroCtaRef}
                 style={{ opacity: 0 }}
               >
-                <a href="#contact" className="button primary magnetic">
+                <a href="#contact" className="button primary">
                   <span>Get In Touch</span>
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path
@@ -1003,7 +918,7 @@ export default function Home() {
                 </a>
                 <a
                   href="./Ahmed Dlshad Mohammed - Resume_compressed.pdf"
-                  className="button secondary magnetic"
+                  className="button secondary"
                 >
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path
@@ -1074,61 +989,12 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Hero image */}
-            <div
-              className="hero-image reveal from-right"
-              style={{ transitionDelay: "0.3s" }}
-            >
-              <div className="image-wrapper">
-                <div className="glow-effect"></div>
-                <img
-                  src="./imgs/me.jpg"
-                  alt="Ahmed Dlshad"
-                  width={420}
-                  height={420}
-                  fetchPriority="high"
-                />
-              </div>
-            </div>
           </div>
 
-          {/* Scroll indicator */}
-          <div className="scroll-indicator">
-            <span style={{ fontSize: "13px" }}>Scroll</span>
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path
-                d="M10 5V15M10 15L5 10M10 15L15 10"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
         </section>
 
-        {/* ══════════ Tech Marquee ══════════ */}
-        <section className="tech-marquee">
-          <div className="marquee">
-            <div className="track">
-              {/* First set */}
-              {MARQUEE_TECHS.map((tech, i) => (
-                <span key={`m1-${i}`} style={marqueeSpanStyle}>
-                  {tech}
-                </span>
-              ))}
-              {/* Repeat for seamless loop */}
-              {MARQUEE_TECHS.map((tech, i) => (
-                <span key={`m2-${i}`} style={marqueeSpanStyle}>
-                  {tech}
-                </span>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ══════════ About & Skills ══════════ */}
-        <section id="about" className="about-skills-section">
+        {/* ══════════ About ══════════ */}
+        <section id="about" className="about-section">
           <div className="container">
             <div className="section-header reveal">
               <span className="section-label">Get To Know Me</span>
@@ -1136,7 +1002,7 @@ export default function Home() {
             </div>
 
             <div className="about-content">
-              <div className="about-text reveal from-left">
+              <div className="about-text reveal">
                 <h3>Building Where Agentic AI Meets Full-Stack</h3>
                 <p>
                   Hi! I&apos;m Ahmed Dlshad Mohammed, a Full-Stack &amp; Agentic
@@ -1157,186 +1023,29 @@ export default function Home() {
                   driven by problems where good engineering and AI capability
                   combine into something genuinely useful.
                 </p>
+
+                {/* Current stack — inline strip, replaces the removed Skills section */}
+                <div className="about-stack" aria-label="Current technology stack">
+                  <span className="about-stack-label">Current stack</span>
+                  <div className="about-stack-tags">
+                    {CURRENT_STACK.map((tech) => (
+                      <span key={tech} className="about-stack-tag">{tech}</span>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="stats-grid">
-                  <div
-                    className="stat-card reveal"
-                    style={{ transitionDelay: "0.1s" }}
-                  >
+                  <div className="stat-card reveal" style={{ transitionDelay: "0.1s" }}>
                     <h4>2+</h4>
                     <p>Years Experience</p>
                   </div>
-                  <div
-                    className="stat-card reveal"
-                    style={{ transitionDelay: "0.2s" }}
-                  >
+                  <div className="stat-card reveal" style={{ transitionDelay: "0.2s" }}>
                     <h4>7+</h4>
                     <p>Projects Completed</p>
                   </div>
-                  <div
-                    className="stat-card reveal"
-                    style={{ transitionDelay: "0.3s" }}
-                  >
+                  <div className="stat-card reveal" style={{ transitionDelay: "0.3s" }}>
                     <h4>3</h4>
                     <p>Languages</p>
-                  </div>
-                </div>
-              </div>
-
-              <div id="skills" className="skills-grid">
-                {/* Languages */}
-                <div
-                  className="skill-category reveal"
-                  style={{ transitionDelay: "0.1s" }}
-                >
-                  <div className="category-icon">
-                    <svg
-                      width="32"
-                      height="32"
-                      viewBox="0 0 32 32"
-                      fill="none"
-                    >
-                      <path
-                        d="M9 9L4 16L9 23M23 9L28 16L23 23M19 6L13 26"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                  <h3>Languages</h3>
-                  <div className="skill-tags">
-                    <span className="skill-tag">Python</span>
-                    <span className="skill-tag">JavaScript</span>
-                    <span className="skill-tag">TypeScript</span>
-                    <span className="skill-tag">C++</span>
-                    <span className="skill-tag">Java</span>
-                    <span className="skill-tag">HTML5</span>
-                    <span className="skill-tag">CSS3</span>
-                  </div>
-                </div>
-
-                {/* Frameworks */}
-                <div
-                  className="skill-category reveal"
-                  style={{ transitionDelay: "0.2s" }}
-                >
-                  <div className="category-icon">
-                    <svg
-                      width="32"
-                      height="32"
-                      viewBox="0 0 32 32"
-                      fill="none"
-                    >
-                      <path
-                        d="M28 10L16 4L4 10L16 16L28 10Z"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M4 22L16 28L28 22"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M4 16L16 22L28 16"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                  <h3>Frameworks</h3>
-                  <div className="skill-tags">
-                    <span className="skill-tag">React</span>
-                    <span className="skill-tag">Next.js</span>
-                    <span className="skill-tag">Node.js</span>
-                    <span className="skill-tag">Flask</span>
-                    <span className="skill-tag">Tailwind CSS</span>
-                  </div>
-                </div>
-
-                {/* AI / Agents */}
-                <div
-                  className="skill-category reveal"
-                  style={{ transitionDelay: "0.3s" }}
-                >
-                  <div className="category-icon">
-                    <svg
-                      width="32"
-                      height="32"
-                      viewBox="0 0 32 32"
-                      fill="none"
-                    >
-                      <circle cx="16" cy="16" r="3" fill="currentColor" />
-                      <circle
-                        cx="16"
-                        cy="16"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      />
-                      <path
-                        d="M16 6V2M16 30V26M26 16H30M2 16H6M23 9L26 6M6 26L9 23M23 23L26 26M6 6L9 9"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                  </div>
-                  <h3>AI &amp; Agents</h3>
-                  <div className="skill-tags">
-                    <span className="skill-tag">Agentic AI</span>
-                    <span className="skill-tag">MCP</span>
-                    <span className="skill-tag">OpenRouter</span>
-                    <span className="skill-tag">OpenAI API</span>
-                    <span className="skill-tag">Hugging Face</span>
-                    <span className="skill-tag">RAG</span>
-                    <span className="skill-tag">Stable Diffusion</span>
-                  </div>
-                </div>
-
-                {/* Cloud & Tools */}
-                <div
-                  className="skill-category reveal"
-                  style={{ transitionDelay: "0.4s" }}
-                >
-                  <div className="category-icon">
-                    <svg
-                      width="32"
-                      height="32"
-                      viewBox="0 0 32 32"
-                      fill="none"
-                    >
-                      <path
-                        d="M22 18C25.3137 18 28 15.3137 28 12C28 8.68629 25.3137 6 22 6C21.7376 6 21.4789 6.01686 21.2253 6.04955C20.0832 4.21841 18.0508 3 15.7273 3C12.4286 3 9.71429 5.39674 9.20889 8.55556C9.13889 8.55159 9.06806 8.55556 9 8.55556C5.13401 8.55556 2 11.6896 2 15.5556C2 19.4215 5.13401 22.5556 9 22.5556H22"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M14 22L16 26L18 22M16 16V26"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                  <h3>Cloud &amp; Tools</h3>
-                  <div className="skill-tags">
-                    <span className="skill-tag">AWS</span>
-                    <span className="skill-tag">Docker</span>
-                    <span className="skill-tag">Vercel</span>
-                    <span className="skill-tag">Railway</span>
-                    <span className="skill-tag">Git</span>
-                    <span className="skill-tag">GitHub</span>
                   </div>
                 </div>
               </div>
@@ -1481,15 +1190,8 @@ export default function Home() {
               {PROJECTS.map((p, i) => (
                 <article
                   key={p.title}
-                  className={`project-card reveal scale-in${
-                    p.featured ? " featured" : ""
-                  }${p.wide ? " wide" : ""}`}
-                  style={
-                    {
-                      transitionDelay: `${0.05 + i * 0.05}s`,
-                      "--hue": p.hue,
-                    } as React.CSSProperties
-                  }
+                  className={`project-card reveal scale-in size-${p.size}`}
+                  style={{ transitionDelay: `${0.05 + i * 0.05}s`, "--hue": p.hue } as React.CSSProperties}
                 >
                   <span className="project-index" aria-hidden="true">
                     {String(i + 1).padStart(2, "0")}
@@ -1531,22 +1233,34 @@ export default function Home() {
             </div>
 
             <div className="contact-content">
-              <div className="contact-info reveal from-left">
+              <div className="contact-info reveal">
                 <h3>AI-Powered Assistant</h3>
                 <p>
-                  I&apos;ve created an AI chatbot that knows all about my skills,
-                  work experience, and background. Feel free to ask it anything
-                  about my qualifications, projects, or experience!
+                  I&apos;ve created an AI chatbot that knows my skills, work
+                  experience, and background. Ask it anything about my
+                  qualifications, projects, or experience.
                 </p>
                 <p>
-                  You can also reach out to me directly or download my resume to
-                  learn more about my work.
+                  Prefer human contact? Email me, connect on LinkedIn, or
+                  download my resume below.
                 </p>
+
+                <button
+                  type="button"
+                  className="button primary contact-cta"
+                  onClick={toggleFloatChat}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z"
+                      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <span>Talk to my AI</span>
+                </button>
 
                 <div className="contact-methods">
                   <a
                     href="mailto:ahmed.dlshad.m@gmail.com"
-                    className="contact-method"
+                    className="contact-method contact-method-email"
                   >
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                       <path
@@ -1557,10 +1271,28 @@ export default function Home() {
                         strokeLinejoin="round"
                       />
                     </svg>
-                    <div>
+                    <div className="contact-method-body">
                       <h4>Email</h4>
                       <p>ahmed.dlshad.m@gmail.com</p>
                     </div>
+                    <button
+                      type="button"
+                      className="email-copy-btn"
+                      onClick={copyEmail}
+                      aria-label={emailCopied ? "Email copied" : "Copy email to clipboard"}
+                    >
+                      {emailCopied ? (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      ) : (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <rect x="9" y="9" width="11" height="11" rx="2" stroke="currentColor" strokeWidth="2" />
+                          <path d="M5 15V5C5 3.89543 5.89543 3 7 3H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        </svg>
+                      )}
+                      <span className="email-copy-label">{emailCopied ? "Copied" : "Copy"}</span>
+                    </button>
                   </a>
 
                   <a
@@ -1614,92 +1346,6 @@ export default function Home() {
                   </a>
                 </div>
               </div>
-
-              {/* Inline chatbot */}
-              <div
-                className="chatbot-container reveal scale-in"
-                style={{ transitionDelay: "0.2s" }}
-              >
-                <div className="chat-header">
-                  <div className="chat-header-info">
-                    <div className="chat-avatar">
-                      <svg
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                      >
-                        <path
-                          d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 5C13.66 5 15 6.34 15 8C15 9.66 13.66 11 12 11C10.34 11 9 9.66 9 8C9 6.34 10.34 5 12 5ZM12 19.2C9.5 19.2 7.29 17.92 6 15.98C6.03 13.99 10 12.9 12 12.9C13.99 12.9 17.97 13.99 18 15.98C16.71 17.92 14.5 19.2 12 19.2Z"
-                          fill="currentColor"
-                        />
-                      </svg>
-                    </div>
-                    <div>
-                      <h4>AI Assistant</h4>
-                      <span className="status-indicator">
-                        <span className="status-dot"></span>Online
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="chat-messages">
-                  <div
-                    className="messages-scroll"
-                    ref={inlineScrollRef}
-                    role="log"
-                    aria-live="polite"
-                    aria-atomic="false"
-                  >
-                    {messages.map(renderMessage)}
-                    {isLoading && typingBubble}
-                  </div>
-                </div>
-                {messages.length <= 1 && !isLoading && (
-                  <div className="prompt-chips">
-                    {SUGGESTED_PROMPTS.map((p) => (
-                      <button
-                        key={p}
-                        type="button"
-                        className="prompt-chip"
-                        onClick={() => sendInline(p)}
-                      >
-                        {p}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                <form onSubmit={submitForm} className="chat-input-form">
-                  <input
-                    type="text"
-                    placeholder="Ask me about Ahmed's skills, experience, or projects..."
-                    value={messageInput}
-                    onChange={(e) => setMessageInput(e.target.value)}
-                    disabled={isLoading}
-                  />
-                  <button
-                    type="submit"
-                    className="send-button"
-                    aria-label="Send message"
-                    disabled={isLoading}
-                  >
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 20 20"
-                      fill="none"
-                    >
-                      <path
-                        d="M18 2L9 11M18 2L12 18L9 11M18 2L2 8L9 11"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </button>
-                </form>
-              </div>
             </div>
           </div>
         </section>
@@ -1720,7 +1366,6 @@ export default function Home() {
                   <h4>Navigation</h4>
                   <a href="#home">Home</a>
                   <a href="#about">About</a>
-                  <a href="#skills">Skills</a>
                 </div>
                 <div className="footer-column">
                   <h4>Portfolio</h4>
@@ -1750,7 +1395,7 @@ export default function Home() {
             </div>
             <div className="footer-bottom">
               <p>&copy; {new Date().getFullYear()} Ahmed Dlshad. All rights reserved.</p>
-              <p>Built with Next.js &amp; ❤️</p>
+              <p>Designed and built in Sulaymaniyah · Next.js</p>
             </div>
           </div>
         </footer>
@@ -1762,7 +1407,6 @@ export default function Home() {
         aria-label="Open AI Chat"
         onClick={toggleFloatChat}
       >
-        {badgeVisible && <div className="notif-badge">1</div>}
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
           <path
             d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z"
@@ -1777,9 +1421,12 @@ export default function Home() {
       {/* ══════════ Floating Chat Panel ══════════ */}
       <div
         id="float-chat-panel"
+        ref={floatPanelRef}
         className={floatOpen ? "open" : ""}
         role="dialog"
         aria-label="AI Assistant Chat"
+        aria-modal="true"
+        aria-hidden={!floatOpen}
       >
         <div className="float-chat-header">
           <div className="float-chat-header-left">
