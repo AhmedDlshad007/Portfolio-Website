@@ -39,7 +39,8 @@ let wallTime = 0;  // accumulates raw dt in seconds — used for nova scheduling
    The single biggest "this is real space" cue. Disabled on low-power. */
 let milkyWayAngle = 0;          // radians, fixed per page load
 let milkyWayStars = [];          // additional stars concentrated along band
-// Milky Way rendered directly to main canvas — no offscreen cache.
+let milkyWayCanvas = null, milkyWayCtx = null;  // offscreen at 1/2 res for the band glow assembly
+let mwW = 0, mwH = 0;
 
 /* Rare nova event — a single bright point that flares + fades. Spawns every
    ~2-3 minutes. The "did you see that?" moment that rewards staying. */
@@ -337,69 +338,124 @@ function initMilkyWay() {
   }
 }
 
-/* Render the Milky Way glow DIRECTLY on the main canvas at full resolution.
-   Earlier attempts used an offscreen canvas at 1/4 resolution with
-   destination-out for longitudinal masking — too lossy, and the masking
-   step erased pixels other layers had drawn. This version paints the band
-   as additive 'lighter' shapes on top of whatever's behind, no offscreen.
+/* Assemble the Milky Way band on the offscreen canvas.
+   Three additive layers (warm dust + cool core + star clouds) + bright pink
+   HII region knots (real-world analogues: Lagoon, Trifid, North America
+   nebulae) + dark dust lanes carved with destination-out to create the
+   Great Rift. The destination-out only works cleanly on this offscreen
+   canvas; we then drawImage the assembled band onto the main canvas with
+   a 'lighter' blend.
 
-   Three components:
-     • warm amber dust halo across the full thickness
-     • bright cool-white core down the centerline
-     • 9 soft star-cloud patches along the band axis, brighter in the middle
-   Star-cloud brightness is attenuated by along-band position, replacing
-   the destination-out longitudinal mask the offscreen version used. */
-function renderMilkyWayDirect() {
-  if (milkyWayStars.length === 0) return;
+   Called from initMilkyWay() and createOffscreenCanvases() (i.e. once at
+   boot + once on resize). The band itself is static — no per-frame cost. */
+function assembleMilkyWay() {
+  if (!milkyWayCtx || milkyWayStars.length === 0) return;
+  const c = milkyWayCtx;
+  const w = mwW, h = mwH;
+  c.clearRect(0, 0, w, h);
 
-  ctx.save();
-  ctx.translate(W * 0.5, H * 0.5);
-  ctx.rotate(milkyWayAngle);
-  ctx.globalCompositeOperation = 'lighter';
+  c.save();
+  c.translate(w * 0.5, h * 0.5);
+  c.rotate(milkyWayAngle);
 
-  const bandLen = Math.max(W, H) * 1.6;
-  const bandThick = Math.min(W, H) * 0.42;
+  const bandLen = Math.max(w, h) * 1.6;
+  const bandThick = Math.min(w, h) * 0.42;
 
   // Warm dust halo — full thickness, peak alpha 0.06
-  const g1 = ctx.createLinearGradient(0, -bandThick * 0.5, 0, bandThick * 0.5);
+  const g1 = c.createLinearGradient(0, -bandThick * 0.5, 0, bandThick * 0.5);
   g1.addColorStop(0,    'rgba(150, 110, 75, 0)');
   g1.addColorStop(0.25, 'rgba(180, 135, 90, 0.035)');
   g1.addColorStop(0.5,  'rgba(195, 150, 105, 0.06)');
   g1.addColorStop(0.75, 'rgba(180, 135, 90, 0.035)');
   g1.addColorStop(1,    'rgba(150, 110, 75, 0)');
-  ctx.fillStyle = g1;
-  ctx.fillRect(-bandLen * 0.5, -bandThick * 0.5, bandLen, bandThick);
+  c.fillStyle = g1;
+  c.fillRect(-bandLen * 0.5, -bandThick * 0.5, bandLen, bandThick);
 
   // Cool-white core — narrower, peak alpha 0.08
   const coreThick = bandThick * 0.45;
-  const g2 = ctx.createLinearGradient(0, -coreThick * 0.5, 0, coreThick * 0.5);
+  const g2 = c.createLinearGradient(0, -coreThick * 0.5, 0, coreThick * 0.5);
   g2.addColorStop(0,   'rgba(195, 210, 240, 0)');
   g2.addColorStop(0.5, 'rgba(220, 230, 252, 0.08)');
   g2.addColorStop(1,   'rgba(195, 210, 240, 0)');
-  ctx.fillStyle = g2;
-  ctx.fillRect(-bandLen * 0.5, -coreThick * 0.5, bandLen, coreThick);
+  c.fillStyle = g2;
+  c.fillRect(-bandLen * 0.5, -coreThick * 0.5, bandLen, coreThick);
 
-  // Star-cloud patches — bright soft round blobs along the band axis.
-  // Brightness attenuated by along-band distance so the band reads as
-  // brighter in the middle and fades at the ends.
+  // Star-cloud patches — soft round blobs along the band axis,
+  // brightness attenuated by along-band position.
   for (let i = 0; i < 9; i++) {
-    const u = ((i / 8) - 0.5) * 1.4;            // along-band position [-0.7..0.7]
-    const v = Math.sin(i * 2.7) * 0.08;          // deterministic wobble off-axis
+    const u = ((i / 8) - 0.5) * 1.4;
+    const v = Math.sin(i * 2.7) * 0.08;
     const cx = u * bandLen * 0.5;
     const cy = v * bandThick;
-    const r = (0.08 + (i % 3) * 0.035) * Math.min(W, H);
+    const r = (0.08 + (i % 3) * 0.035) * Math.min(w, h);
     const midness = Math.max(0, 1 - Math.abs(u) * 1.25);
     const alpha = 0.13 * midness;
     if (alpha < 0.02) continue;
-    const cloud = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    const cloud = c.createRadialGradient(cx, cy, 0, cx, cy, r);
     cloud.addColorStop(0,    `rgba(230, 235, 255, ${alpha.toFixed(3)})`);
     cloud.addColorStop(0.35, `rgba(215, 200, 170, ${(alpha * 0.55).toFixed(3)})`);
     cloud.addColorStop(1,    'rgba(180, 150, 110, 0)');
-    ctx.fillStyle = cloud;
-    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+    c.fillStyle = cloud;
+    c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill();
   }
 
-  ctx.restore();
+  // HII region knots — small pinkish-red nebulae embedded in the band.
+  // Real analogues: M8 Lagoon, M20 Trifid, M16 Eagle, NGC 7000 North America.
+  // Halpha emission @ 656 nm gives them their distinct pink color in long
+  // exposures. 4 fixed positions along the band so different page-loads
+  // give different angles but the same internal structure.
+  const knots = [
+    { u: -0.42, v:  0.04, r: 0.045, alpha: 0.22 },
+    { u: -0.16, v: -0.06, r: 0.035, alpha: 0.18 },
+    { u:  0.08, v:  0.05, r: 0.050, alpha: 0.24 },
+    { u:  0.35, v: -0.03, r: 0.040, alpha: 0.20 },
+  ];
+  for (let k = 0; k < knots.length; k++) {
+    const n = knots[k];
+    const cx = n.u * bandLen * 0.5;
+    const cy = n.v * bandThick;
+    const r = n.r * Math.min(w, h);
+    const midness = Math.max(0, 1 - Math.abs(n.u) * 1.2);
+    const alpha = n.alpha * midness;
+    if (alpha < 0.03) continue;
+    const knot = c.createRadialGradient(cx, cy, 0, cx, cy, r);
+    knot.addColorStop(0,    `rgba(240, 130, 165, ${alpha.toFixed(3)})`);
+    knot.addColorStop(0.35, `rgba(225, 105, 145, ${(alpha * 0.6).toFixed(3)})`);
+    knot.addColorStop(0.75, `rgba(195,  80, 120, ${(alpha * 0.2).toFixed(3)})`);
+    knot.addColorStop(1,    'rgba(180, 80, 110, 0)');
+    c.fillStyle = knot;
+    c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill();
+  }
+
+  // GREAT RIFT — dark dust lane carved through the band with destination-out.
+  // In real photographs of the Milky Way this is the single most identifying
+  // feature: a serpentine dark line that splits the band lengthwise. Made
+  // from a chain of overlapping dark elliptical gradients with sinusoidal
+  // wobble so it reads as organic, slightly offset from the centerline.
+  c.globalCompositeOperation = 'destination-out';
+  const riftSegments = 30;
+  const riftOffset = -bandThick * 0.04;  // slightly below centerline
+  for (let i = 0; i < riftSegments; i++) {
+    const u = ((i / (riftSegments - 1)) - 0.5) * 1.25;
+    const cx = u * bandLen * 0.5;
+    // Sinusoidal organic wobble + secondary higher-freq detail
+    const cy = riftOffset
+             + Math.sin(i * 0.34 + 1.2) * bandThick * 0.06
+             + Math.sin(i * 0.83) * bandThick * 0.02;
+    const r = (0.045 + Math.sin(i * 0.7) * 0.012) * Math.min(w, h);
+    const midness = Math.max(0, 1 - Math.abs(u) * 1.4);
+    const eatA = 0.7 * midness;  // how much to carve at this segment
+    if (eatA < 0.05) continue;
+    const lane = c.createRadialGradient(cx, cy, 0, cx, cy, r);
+    lane.addColorStop(0,   `rgba(0, 0, 0, ${eatA.toFixed(3)})`);
+    lane.addColorStop(0.5, `rgba(0, 0, 0, ${(eatA * 0.5).toFixed(3)})`);
+    lane.addColorStop(1,   'rgba(0, 0, 0, 0)');
+    c.fillStyle = lane;
+    c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill();
+  }
+  c.globalCompositeOperation = 'source-over';
+
+  c.restore();
 }
 
 /* ══════════════════════════════════════════════
@@ -600,7 +656,16 @@ function createOffscreenCanvases() {
   dustCanvas.width = nebulaW;
   dustCanvas.height = nebulaH;
   dustCtx = dustCanvas.getContext('2d');
-  // Milky Way no longer uses an offscreen canvas — rendered directly each frame.
+
+  // Milky Way offscreen at 1/2 res so we can use destination-out to carve
+  // dust lanes through the assembled band without affecting other layers.
+  if (milkyWayCanvas) { milkyWayCanvas.width = 0; milkyWayCanvas.height = 0; }
+  mwW = Math.ceil(W * 0.5);
+  mwH = Math.ceil(H * 0.5);
+  milkyWayCanvas = document.createElement('canvas');
+  milkyWayCanvas.width = mwW;
+  milkyWayCanvas.height = mwH;
+  milkyWayCtx = milkyWayCanvas.getContext('2d');
 }
 
 /* Pre-render one radial glow sprite per spectral type (full alpha). Drawn with
@@ -734,6 +799,7 @@ function resize() {
   initStars(cfg.starCount || 3000);
   initDeepField();
   createOffscreenCanvases();
+  assembleMilkyWay();  // offscreen MW canvas was recreated at new size
   buildVignetteCanvas();
   offscreenFrameCount = 0;
   cachedScrollHeight = document.body.scrollHeight;
@@ -922,9 +988,15 @@ function drawFrame(timestamp) {
   ctx.drawImage(nebulaCanvas, 0, 0, W, H);
   ctx.restore();
 
-  /* ═══ Milky Way dust glow — rendered directly to main canvas above the
-     nebula composite so it has full resolution + no compositing weirdness. ═══ */
-  renderMilkyWayDirect();
+  /* ═══ Milky Way — assembled offscreen with HII knots + Great Rift dust
+     lanes carved via destination-out (which would erase other layers if done
+     on the main canvas). Drawn back additively each frame. ═══ */
+  if (milkyWayCanvas && milkyWayStars.length > 0) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.drawImage(milkyWayCanvas, 0, 0, W, H);
+    ctx.restore();
+  }
 
   /* ═══ Milky Way stars — denser band ═══ */
   if (milkyWayStars.length > 0) drawStars(milkyWayStars, 1.2);
@@ -1396,6 +1468,7 @@ window.bootSpace = function(defaults) {
   initDarkNebulae();
   initWisps();
   initMilkyWay();
+  assembleMilkyWay();
   // Schedule first nova 25-45s after boot
   wallTime = 0;
   nextNovaAt = 25 + Math.random() * 20;  // first nova lands ~25-45s after boot
@@ -1423,6 +1496,7 @@ window.updateSpaceCfg = function(newCfg) {
     initDeepField();
     initMilkyWay();
     createOffscreenCanvases();
+    assembleMilkyWay();  // offscreen MW canvas was recreated; re-bake
   }
 };
 

@@ -386,8 +386,12 @@ export default function Home() {
           gridLines: false,
           speed: 50,
           // lowPower keeps animation alive but with fewer stars + lighter blur.
-          starCount: lowPower ? 200 : isMobile ? 300 : 550,
-          deepFieldCount: lowPower ? 800 : isMobile ? 1400 : 4000,
+          // Floors raised — the previous low-power values produced visible gaps
+          // in the sky on machines that get classified low-power by browser
+          // fingerprint protection (cores<=2). Density is what makes the sky
+          // read as deep space.
+          starCount: lowPower ? 450 : isMobile ? 400 : 650,
+          deepFieldCount: lowPower ? 2500 : isMobile ? 2200 : 5000,
           showStreaks: !reduce,
           warpEffect: !reduce,
         });
