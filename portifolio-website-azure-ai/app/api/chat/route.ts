@@ -104,7 +104,7 @@ export async function POST(request: Request) {
   const apiKey = process.env.OPENROUTER_API_KEY;
   // Cheap, reliable default (~$0.002/chat). Override via OPENROUTER_MODEL
   // (e.g. "google/gemini-2.5-flash" for lower cost) — no code change needed.
-  const model = process.env.OPENROUTER_MODEL || "anthropic/claude-haiku-4.5";
+  const model = process.env.OPENROUTER_MODEL || "deepseek/deepseek-v4-flash";
   if (!apiKey) {
     console.error("OPENROUTER_API_KEY is not set on the server.");
     return NextResponse.json(
