@@ -988,18 +988,19 @@ function drawFrame(timestamp) {
   ctx.drawImage(nebulaCanvas, 0, 0, W, H);
   ctx.restore();
 
-  /* ═══ Milky Way — assembled offscreen with HII knots + Great Rift dust
-     lanes carved via destination-out (which would erase other layers if done
-     on the main canvas). Drawn back additively each frame. ═══ */
-  if (milkyWayCanvas && milkyWayStars.length > 0) {
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.drawImage(milkyWayCanvas, 0, 0, W, H);
-    ctx.restore();
-  }
-
-  /* ═══ Milky Way stars — denser band ═══ */
-  if (milkyWayStars.length > 0) drawStars(milkyWayStars, 1.2);
+  /* ═══ Milky Way — DISABLED for now ═══
+     The faraway-galaxy band read as a flat "lens blur" diagonal rather than a
+     galaxy, so the glow band and its denser star band are turned off while we
+     evaluate the background without it. The init/assembly code (initMilkyWay,
+     assembleMilkyWay) is left intact — re-enable by restoring the two blocks
+     below. ═══ */
+  // if (milkyWayCanvas && milkyWayStars.length > 0) {
+  //   ctx.save();
+  //   ctx.globalCompositeOperation = 'lighter';
+  //   ctx.drawImage(milkyWayCanvas, 0, 0, W, H);
+  //   ctx.restore();
+  // }
+  // if (milkyWayStars.length > 0) drawStars(milkyWayStars, 1.2);
 
   /* ═══ LAYER 7: Star clusters ═══ */
   ctx.save();
